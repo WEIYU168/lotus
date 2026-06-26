@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>蓮說群芳傳・愛蓮說闖關</title>
+<style>
+  :root{ --ink:#1c1a17; --paper:#efe6d0; --line:#6b5836; --gold:#c79a3a; --jade:#4d8a6a; --crimson:#9a3a2a; --shadow:rgba(0,0,0,.45); }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;background:#0c0b09;color:var(--paper);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;overflow:hidden;}
+  body{display:block;height:100dvh;}
+  #wrap{position:relative;width:100%;height:100dvh;min-height:0;display:grid;grid-template-columns:86px minmax(0,1fr) 86px;gap:6px;padding:4px 6px;overflow:hidden;}
+  #stage{position:relative;width:100%;height:100%;min-width:0;min-height:0;}
+  canvas{display:block;width:100%;height:100%;image-rendering:auto;
+    background:#0c0b09;border:4px solid var(--line);border-radius:5px;
+    box-shadow:0 8px 30px var(--shadow), inset 0 0 60px rgba(0,0,0,.28);}
+  .token-rail{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+    background:rgba(12,11,9,.96);overflow:hidden;}
+  .rail-token{width:68px;height:68px;display:flex;align-items:center;justify-content:center;border:2px solid #493d29;
+    border-radius:9px;background:rgba(239,230,208,.05);filter:grayscale(1);opacity:.24;overflow:hidden;}
+  .rail-token img{display:block;width:60px;height:60px;object-fit:contain;}
+  .rail-token.got{background:rgba(199,154,58,.18);border-color:#c79a3a;filter:none;opacity:1;
+    box-shadow:0 0 12px rgba(199,154,58,.28);}
+  #hud{position:absolute;top:10px;left:10px;right:10px;display:flex;gap:8px;flex-wrap:wrap;font-size:13px;pointer-events:none;}
+  .chip{background:rgba(24,22,19,.82);border:2px solid var(--line);border-radius:5px;padding:5px 11px;line-height:1.3;}
+  .chip b{color:var(--gold);font-weight:700;} .chip .rank{color:#7fd0a6;}
+  #hHealth{color:#e87369;letter-spacing:2px;}
+  #tokenChip{display:flex;align-items:center;gap:8px;}
+  #tokenIcons{display:flex;gap:3px;flex-wrap:wrap;max-width:330px;}
+  .token-icon{width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #6b5836;
+    border-radius:4px;background:rgba(239,230,208,.08);filter:grayscale(1);opacity:.28;overflow:hidden;}
+  .token-icon img{display:block;width:22px;height:22px;object-fit:contain;}
+  .token-icon.got{background:rgba(199,154,58,.2);border-color:#c79a3a;filter:none;opacity:1;}
+  #mute{position:absolute;top:10px;right:10px;pointer-events:auto;background:rgba(24,22,19,.82);
+    border:2px solid var(--line);color:var(--paper);border-radius:5px;font-size:12px;padding:5px 9px;cursor:pointer;}
+  #introVideo{position:fixed;inset:0;z-index:20;background:#050403;display:flex;align-items:center;justify-content:center;}
+  #introVideo.hide{display:none;}
+  #introVideo video{width:100%;height:100%;object-fit:contain;background:#050403;}
+  #enterIntro{position:absolute;left:50%;bottom:8vh;transform:translateX(-50%);display:none;
+    background:var(--gold);color:#241c08;border:none;border-radius:7px;padding:13px 32px;
+    font-size:17px;font-weight:700;font-family:inherit;letter-spacing:2px;cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.45);}
+  #enterIntro.show{display:block;}
+  #panel{position:absolute;left:10px;right:10px;bottom:8px;background:rgba(22,20,17,.97);
+    border:2px solid var(--line);border-radius:7px;padding:9px;display:none;box-shadow:0 -4px 24px var(--shadow);}
+  #panel.show{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px;}
+  #panel.battle-panel{bottom:6px;}
+  #panel.battle-panel.show{grid-template-columns:minmax(0,1fr);}
+  #panel.battle-panel #npcPortrait{display:none;}
+  #panel.battle-panel #opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+  #npcPortrait{display:block;width:118px;height:156px;align-self:start;object-fit:cover;object-position:center 28%;
+    border:2px solid var(--gold);border-radius:6px;background:#17130e;box-shadow:0 4px 14px rgba(0,0,0,.45);}
+  #dialogContent{min-width:0;}
+  #speaker{color:var(--gold);font-weight:700;font-size:14px;margin-bottom:6px;letter-spacing:1px;}
+  #speaker .plant{color:#7fd0a6;font-weight:500;font-size:12px;margin-left:6px;}
+  #say{font-size:14px;line-height:1.55;white-space:pre-wrap;margin-bottom:7px;}
+  #opts{display:flex;flex-direction:column;gap:5px;}
+  .opt{text-align:left;background:var(--paper);color:var(--ink);border:2px solid var(--line);border-radius:5px;
+    padding:7px 10px;font-size:13px;font-family:inherit;cursor:pointer;transition:transform .05s,background .15s;}
+  .opt:hover{background:#fff;} .opt:active{transform:translateY(1px);}
+  .opt.correct{background:#bfe3c5;border-color:#2f7a45;} .opt.wrong{background:#e8b9b0;border-color:#a3402f;}
+  .opt[disabled]{cursor:default;opacity:.9;}
+  #next{margin-top:7px;background:var(--gold);color:#241c08;border:none;border-radius:5px;padding:7px 16px;
+    font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-block;visibility:hidden;}
+  #next.show{visibility:visible;}
+  .hint{font-size:12.5px;color:#cdbd92;margin-top:8px;line-height:1.6;}
+  #pad{position:absolute;left:12px;bottom:16px;width:138px;height:138px;display:none;touch-action:none;}
+  #pad.show{display:block;}
+  .dbtn{position:absolute;width:46px;height:46px;background:rgba(239,230,208,.2);border:2px solid rgba(239,230,208,.5);
+    border-radius:9px;color:var(--paper);display:flex;align-items:center;justify-content:center;font-size:18px;user-select:none;}
+  #du{top:0;left:46px;} #dd{bottom:0;left:46px;} #dl{top:46px;left:0;} #dr{top:46px;right:0;}
+  #act{position:absolute;right:16px;bottom:26px;width:74px;height:74px;border-radius:50%;background:var(--crimson);
+    border:3px solid #d8b27a;color:#fff;font-size:15px;font-weight:700;display:none;align-items:center;justify-content:center;user-select:none;}
+  #act.show{display:flex;}
+  #card{position:absolute;inset:0;background:rgba(10,9,7,.94);display:none;align-items:center;justify-content:center;text-align:center;padding:24px;overflow:hidden;}
+  #card.show{display:flex;}
+  #cardInner{width:100%;max-height:100%;overflow-y:auto;padding:8px 12px;}
+  #card.celebrate{background:rgba(10,9,7,.68);pointer-events:none;}
+  #card.celebrate button{pointer-events:auto;}
+  #card h1{font-size:clamp(24px,3vw,38px);color:var(--gold);letter-spacing:5px;margin:0 0 4px;}
+  #card .sub{color:#7fd0a6;letter-spacing:7px;font-size:clamp(12px,1.3vw,16px);margin-bottom:16px;}
+  #card p{font-size:clamp(14px,1.35vw,18px);line-height:1.75;max-width:720px;color:var(--paper);margin:7px auto;}
+  #card .verse{font-family:"Noto Serif TC",serif;color:#d8c79a;font-size:15px;line-height:2;margin:14px 0;}
+  #card button{margin-top:18px;background:var(--gold);color:#241c08;border:none;border-radius:6px;padding:11px 28px;
+    font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;}
+  .seal{display:inline-block;margin-top:18px;padding:6px 12px;border:2px solid var(--crimson);color:#e08a76;font-size:12px;letter-spacing:2px;border-radius:3px;}
+  @media (min-width:1180px){
+    #panel{left:50%;right:auto;bottom:12px;top:auto;width:min(860px,calc(100% - 36px));overflow:hidden;
+      transform:translateX(-50%);box-shadow:0 -4px 24px var(--shadow);}
+    #panel.battle-panel{width:min(760px,calc(100% - 36px));}
+    #opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
+    #say{font-size:14px;}
+    .opt{font-size:13px;padding:7px 10px;}
+    #pad{bottom:20px;}
+    #act{right:22px;bottom:30px;}
+  }
+  @media (max-width:760px){
+    #wrap{display:block;padding:0;}
+    #stage{width:100vw;height:100dvh;}
+    .token-rail{display:none;}
+    #tokenIcons{max-width:210px;}
+    .token-icon{width:20px;height:20px;}
+    .token-icon img{width:18px;height:18px;}
+    #enterIntro{bottom:7vh;font-size:15px;padding:11px 24px;}
+    #panel.show{grid-template-columns:92px minmax(0,1fr);gap:9px;}
+    #npcPortrait{width:92px;height:123px;}
+    #say{font-size:13px;line-height:1.55;}
+    #card{padding:14px;}
+    #cardInner{padding:6px 8px;}
+    #card h1{font-size:24px;}
+    #card p{font-size:15px;line-height:1.65;}
+    .opt{font-size:12px;padding:7px 9px;}
+  }
+  @media (min-width:761px){#tokenIcons{display:none;}}
+</style>
+</head>
+<body>
+<div id="introVideo">
+  <video id="openingVideo" src="蓮說群芳傳開頭.mp4" autoplay playsinline controls></video>
+  <button id="enterIntro">播放開場影片</button>
+</div>
+<audio id="bgm" src="俠影江湖背景音.mp3" loop preload="auto"></audio>
+<div id="wrap">
+  <div class="token-rail" id="leftTokenRail" aria-label="左側信物"></div>
+  <div id="stage">
+    <canvas id="game" width="1440" height="1080"></canvas>
+    <div id="hud">
+      <div class="chip">身分　<span class="rank" id="hRank">初入江湖</span></div>
+      <div class="chip">雅興值　<b id="hScore">0</b></div>
+      <div class="chip">體力　<b id="hHealth">♥♥♥♥</b></div>
+      <div class="chip" id="tokenChip"><span>信物　<b id="hToken">0</b>／15</span><span id="tokenIcons"></span></div>
+    </div>
+    <button id="mute">背景音：開</button>
+    <div id="pad"><div class="dbtn" id="du">▲</div><div class="dbtn" id="dd">▼</div><div class="dbtn" id="dl">◀</div><div class="dbtn" id="dr">▶</div></div>
+    <div id="act">查探</div>
+    <div id="panel"><img id="npcPortrait" src="assets/portraits/academy.webp" alt="關主"><div id="dialogContent"><div id="speaker"></div><div id="say"></div><div id="opts"></div><div class="hint" id="hint"></div><button id="next">繼續 ▸</button></div></div>
+    <div id="card"><div id="cardInner"></div></div>
+  </div>
+  <div class="token-rail" id="rightTokenRail" aria-label="右側信物"></div>
+</div>
+<script>
+"use strict";
+const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+const BASE_VW=1440, BASE_VH=1080;
+let VW=BASE_VW, VH=BASE_VH;
+function fitCanvasToStage(){
+  const stage=document.getElementById('stage'), rect=stage.getBoundingClientRect();
+  if(!rect.width||!rect.height)return;
+  const nextW=Math.min(2880,Math.max(BASE_VW,Math.round(BASE_VH*rect.width/rect.height)));
+  if(cv.width!==nextW||cv.height!==BASE_VH){ cv.width=nextW; cv.height=BASE_VH; }
+  VW=cv.width; VH=cv.height; ctx.imageSmoothingEnabled=false;
+}
+fitCanvasToStage();
+const TILE=48, MAP_W=64, MAP_H=48, WORLD_W=MAP_W*TILE, WORLD_H=MAP_H*TILE;
+const worldBg=new Image();
+let worldBgReady=false, worldBgFailed=false;
+worldBg.onload=()=>{ worldBgReady=true; };
+worldBg.onerror=()=>{ worldBgFailed=true; };
+worldBg.src='遊戲精緻背景_v10_縮小場景_高畫質_2x.png';
+const playerBattlePortrait=new Image();
+playerBattlePortrait.src='assets/portraits/player.webp';
+const playerMapSprite=new Image();
+playerMapSprite.src='assets/sprites/player-map.png';
+
+/* ---------- 音效 ---------- */
+const bgm=document.getElementById('bgm'), muteBtn=document.getElementById('mute');
+let AC=null, muted=false;
+function actx(){ if(!AC){ try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} } return AC; }
+function playBgm(){ if(muted)return; bgm.volume=.42; bgm.play().catch(()=>{}); }
+function beep(f,d,t){ if(muted)return; const a=actx(); if(!a)return; const o=a.createOscillator(),g=a.createGain();
+  o.type=t||'square'; o.frequency.value=f; o.connect(g); g.connect(a.destination); const n=a.currentTime;
+  g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(.16,n+.01); g.gain.exponentialRampToValueAtTime(.0001,n+d);
+  o.start(n); o.stop(n+d+.02); }
+const sOk=()=>{beep(660,.08,'triangle');setTimeout(()=>beep(880,.09,'triangle'),75);setTimeout(()=>beep(1100,.13,'triangle'),150);},
+  sNo=()=>{beep(220,.11,'sawtooth');setTimeout(()=>beep(145,.2,'sawtooth'),90);},
+  sEnter=()=>{beep(440,.07,'triangle');setTimeout(()=>beep(560,.09,'triangle'),70);},
+  sHit=()=>beep(220,.1,'square'), sWin=()=>[523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.15),i*120));
+function sFirework(){
+  beep(110,.16,'sine');
+  setTimeout(()=>{ beep(760,.08,'square'); beep(1040,.1,'triangle'); },140);
+}
+function setAudioMuted(next){
+  muted=next; bgm.muted=muted; muteBtn.textContent=muted?'背景音：關':'背景音：開';
+  if(muted)bgm.pause(); else { playBgm(); beep(660,.08); }
+}
+muteBtn.onclick=()=>setAudioMuted(!muted);
+
+/* ---------- 門派 ---------- */
+const SECTS={
+  academy:{name:'翰墨書院',accent:'#9a9a9a',kind:'intro'},
+  // 答題
+  willow:{name:'灞橋渡',plant:'楊柳',accent:'#6fae5a',npc:'詠絮才女',token:'柳枝',kind:'quiz',
+    intro:'灞橋之畔，柳絲拂水。一位執卷女子臨風而立。\n「年年柳色，灞陵傷別──郎君可知折柳所寄何情？」',
+    qs:[{tier:'初階',q:'古人臨別「折柳」相贈，主要表達什麼情感？',o:['祝賀高升','送別、留戀之情','祈求平安','思鄉之苦'],a:1,e:'「柳」與「留」諧音，折柳寄寓挽留難捨之意。'},
+        {tier:'中階',q:'謝道韞以「未若柳絮因風起」詠雪，後世因而用哪個詞讚美才女？',o:['詠絮之才','蕙質蘭心','錦心繡口','掃眉才子'],a:0,e:'「詠絮之才」即由謝道韞詠雪典故而來。'},
+        {tier:'高階',q:'下列哪個成語與「柳」無關？',o:['柳暗花明','尋花問柳','霸陵折柳','望梅止渴'],a:3,e:'「望梅止渴」出自曹操行軍以梅止渴，與柳無涉。'}]},
+  apricot:{name:'杏花村',plant:'杏花',accent:'#e2a04a',npc:'杏壇老圃',token:'杏實',kind:'quiz',
+    intro:'杏花村頭，紅杏出牆，酒旗招展。一位荷鋤老圃笑臉相迎。\n「清明時節雨紛紛──郎君可知杏花繫著哪兩種人？」',
+    qs:[{tier:'初階',q:'杏花常用以象徵哪兩種行業？',o:['教師與醫師','商人與農夫','漁夫與樵夫','詩人與畫家'],a:0,e:'「杏壇」喻教育界、「杏林」喻醫界。'},
+        {tier:'中階',q:'杜牧〈清明〉：「借問酒家何處有，牧童遙指□□村。」缺空為？',o:['杏花','桃花','梅花','蘆花'],a:0,e:'正是「杏花村」，後遂成酒鄉的代稱。'},
+        {tier:'高階',q:'「杏林春暖」這句成語是用來稱頌什麼？',o:['教學優良','醫術高明、醫德仁厚','春景宜人','文章典雅'],a:1,e:'源於董奉行醫種杏，後以「杏林」頌醫德醫術。'}]},
+  // 格鬥
+  bamboo:{name:'此君軒',plant:'竹',accent:'#3f7a3f',npc:'東坡居士',token:'竹節',kind:'battle',move:'竹影劍',
+    intro:'此君軒外，翠竹千竿，蕭蕭有聲。東坡居士橫笛而立。\n「可使食無肉，不可居無竹。少年郎，敢與我以學問切磋一場否？\n（答對出招克敵，答錯反受其制。）」',
+    qs:[{tier:'初階',q:'「竹」最常象徵君子的哪三種品德？',o:['虛心、有節、正直','富貴、權勢、名望','離別、思念、哀愁','閒適、慵懶、自得'],a:0,e:'竹中空──虛心；竹有節──氣節；竹挺直──正直。'},
+        {tier:'中階',q:'「可使食無肉，不可居無竹」是哪位文豪詠竹的名句？',o:['陶淵明','蘇東坡','王維','周敦頤'],a:1,e:'出自蘇東坡，足見其愛竹成癖。'},
+        {tier:'高階',q:'竹與梅、蘭、菊並稱為下列何者？',o:['歲寒三友','花中四君子','四時佳卉','三益之友'],a:1,e:'梅、蘭、竹、菊──花中四君子；松、竹、梅──歲寒三友。'}]},
+  // 接花小遊戲
+  plum:{name:'梅花塢',plant:'梅花',accent:'#cf6f8f',npc:'和靖先生',token:'梅蕊',kind:'catch',
+    intro:'梅花塢中，疏影橫斜，暗香浮動。和靖先生攜鶴而來。\n「踏雪尋梅，貴在用心。且接住飄落的梅花，莫教枯枝混入。」',
+    bonus:{tier:'高階',q:'林逋〈山園小梅〉「疏影橫斜水清淺，暗香浮動月黃昏」描寫的是哪一種花？',o:['梅花','桃花','杏花','牡丹'],a:0,e:'「疏影」「暗香」是詠梅名句，寫出梅花清幽高潔之姿。'}},
+  // 終局
+  lotus:{name:'蓮花淨臺',plant:'蓮',accent:'#e8d6e8',npc:'濂溪先生',kind:'finale',great:true,
+    locked:'淨臺臨水，蓮葉田田。濂溪先生負手而立。\n「君欲識蓮之德，須先遍訪群芳、心有所養。\n（請先完成所有門派、取得 15 枚信物，再回此處。）」',
+    intro:'濂溪先生臨水而立：「蓮，出淤泥而不染。\n君且渡此一池淤泥而不沾其穢，方知君子立身之難。」'},
+  // 三大門派之二（格鬥）
+  chrysanthemum:{name:'東籬山莊',plant:'菊',accent:'#d7b53a',great:true,npc:'五柳先生',token:'菊英',kind:'battle',move:'東籬采菊手',
+    intro:'東籬之下，黃花滿畦，南山在望。五柳先生把酒臨風。\n「結廬在人境，而無車馬喧。後生，可願與我以詩酒論高下？」',
+    qs:[{tier:'初階',q:'菊花在傳統文化中，最常象徵下列何者？',o:['隱逸高潔','富貴顯達','離情別緒','堅貞愛情'],a:0,e:'菊為花之隱逸者，常喻避世高士。'},
+        {tier:'中階',q:'「採菊東籬下，悠然見南山」出自誰的〈飲酒〉詩？',o:['陶淵明','李白','王維','蘇軾'],a:0,e:'陶淵明〈飲酒〉，是菊與隱逸最著名的連結。'},
+        {tier:'高階',q:'〈愛蓮說〉：「菊，花之□□者也。」缺空為？',o:['隱逸','富貴','君子','高潔'],a:0,e:'菊—隱逸者、牡丹—富貴者、蓮—君子者。'}]},
+  peony:{name:'洛陽園',plant:'牡丹',accent:'#c5483f',great:true,npc:'洛陽花王',token:'丹瓣',kind:'battle',move:'國色天香掌',
+    intro:'洛陽園中，牡丹盛放，金碧輝煌。花王衣著華貴，傲然相迎。\n「世人皆愛我牡丹之富貴。後生，可有膽與我較量一番？」',
+    qs:[{tier:'初階',q:'牡丹素有「花中之□」之美稱？',o:['王','君子','隱士','仙'],a:0,e:'牡丹雍容華貴，故稱花中之王、富貴花。'},
+        {tier:'中階',q:'相傳武則天貶牡丹，使其盛開於哪座城而名聞天下？',o:['洛陽','長安','汴京','金陵'],a:0,e:'故有「洛陽紅」之名。'},
+        {tier:'高階',q:'〈愛蓮說〉結尾：「牡丹之愛，宜乎□矣。」缺空為？',o:['眾','寡','鮮','絕'],a:0,e:'愛牡丹者眾、愛蓮者寡，正是周敦頤的感慨。'}]},
+  pine:{name:'後凋園',plant:'松柏',accent:'#3f6b4a',npc:'後凋老人',token:'蒼髯',kind:'battle',move:'後凋勁節指',
+    intro:'後凋園中，蒼松挺立，凜然有節。一位鶴髮老者按劍而立。\n「歲寒，然後知松柏。後生，敢來試我這勁節之招否？」',
+    qs:[{tier:'初階',q:'松柏最常象徵下列何種精神？',o:['堅忍不拔、長青不凋','逍遙隱逸','離情依依','雍容富貴'],a:0,e:'松柏耐寒長青，喻堅貞不屈。'},
+        {tier:'中階',q:'「歲寒，然後知松柏之□□也」缺空為？',o:['後凋','先榮','長青','獨秀'],a:0,e:'語出《論語》，喻人於患難見節操。'},
+        {tier:'高階',q:'松、竹、梅因耐寒而合稱為？',o:['歲寒三友','花中四君子','三清','三益友'],a:0,e:'松、竹、梅—歲寒三友。'}]},
+  // 答題
+  peach:{name:'桃花源',plant:'桃花',accent:'#e88aa0',npc:'武陵漁人',token:'桃符',kind:'quiz',
+    intro:'忽逢桃花林，夾岸數百步，落英繽紛。一位漁人自洞口走出。\n「客從何來？且答我幾問，便引你入此桃源。」',
+    qs:[{tier:'初階',q:'「桃花源」一詞，主要象徵什麼？',o:['與世隔絕的美好世界','繁華喧鬧的市集','征戰殺伐之地','寒苦清貧之鄉'],a:0,e:'桃花源喻理想中安樂無爭的境地。'},
+        {tier:'中階',q:'〈桃花源記〉中，漁人進入桃花源後，村人為何感到驚訝？',o:['不知外界已改朝換代','第一次看見漁船','以為漁人是神仙','害怕漁人偷走桃花'],a:0,e:'桃花源中人避秦亂入此絕境，與外界隔絕，故不知有漢，無論魏晉。'},
+        {tier:'高階',q:'成語「人面桃花」多用以表達？',o:['物是人非、佳人不再','形容容貌醜陋','比喻家境富貴','形容勤學苦讀'],a:0,e:'典出崔護詩，喻重尋舊地而佳人已杳。'}]},
+  orchid:{name:'空谷幽蘭',plant:'蘭花',accent:'#8fb98a',npc:'空谷幽人',token:'蘭馨',kind:'quiz',
+    intro:'空谷之中，幽蘭獨芳，清氣襲人。一位隱者撫琴而坐。\n「蘭生幽谷，不以無人而不芳。請答我數問。」',
+    qs:[{tier:'初階',q:'蘭花最常用以象徵君子的什麼？',o:['品德高潔','權勢顯赫','多情善感','勤勉刻苦'],a:0,e:'蘭喻君子幽芳自守、品格高潔。'},
+        {tier:'中階',q:'「空谷幽蘭」比喻哪一種人？',o:['身處幽僻仍保高潔','才華外露好出風頭','貪圖名利之徒','孤僻怪異之人'],a:0,e:'喻人品高雅，雖處僻靜而芬芳自守。'},
+        {tier:'高階',q:'蘭與梅、竹、菊合稱為？',o:['花中四君子','歲寒三友','四時佳卉','三益之友'],a:0,e:'梅、蘭、竹、菊—花中四君子。'}]},
+  maple:{name:'楓橋',plant:'楓葉',accent:'#c0512f',npc:'寒山客',token:'丹楓',kind:'quiz',
+    intro:'楓橋之畔，霜葉如火，鐘聲隱隱。一位夜泊旅人臨江而立。\n「月落烏啼霜滿天──客可知此景出自何處？」',
+    qs:[{tier:'初階',q:'楓葉最常渲染哪個季節的情調？',o:['秋日的蕭瑟','春日的明媚','夏日的繁盛','冬日的酷寒'],a:0,e:'霜葉轉紅，是秋意與愁緒的象徵。'},
+        {tier:'中階',q:'「月落烏啼霜滿天，江楓漁火對愁眠」出自張繼哪首詩？',o:['楓橋夜泊','靜夜思','楓橋','夜雨寄北'],a:0,e:'張繼〈楓橋夜泊〉。'},
+        {tier:'高階',q:'該詩「姑蘇城外」傳來夜半鐘聲的古寺是？',o:['寒山寺','靈隱寺','普陀寺','棲霞寺'],a:0,e:'「姑蘇城外寒山寺，夜半鐘聲到客船」。'}]},
+  osmanthus:{name:'月窟桂',plant:'桂花',accent:'#e6c14a',npc:'月窟仙子',token:'桂馥',kind:'quiz',
+    intro:'桂影婆娑，香飄十里。一位仙子自月色中緩緩而來。\n「蟾宮一枝桂，可知其中典故？且答我問。」',
+    qs:[{tier:'初階',q:'桂花常與哪個神話人物相連結？',o:['吳剛（伐桂）','嫦娥（奔月）','后羿（射日）','女媧（補天）'],a:0,e:'相傳吳剛在月中伐桂，桂創隨合。'},
+        {tier:'中階',q:'「蟾宮折桂」這句成語比喻什麼？',o:['科舉及第、考試得中','登高望遠','隱居山林','征戰得勝'],a:0,e:'蟾宮即月宮，折桂喻金榜題名。'},
+        {tier:'高階',q:'「蘭桂齊芳」是用來祝願？',o:['子孫顯達昌盛','夫妻和睦','長命百歲','財源廣進'],a:0,e:'蘭桂喻子孫，齊芳即賢能顯達。'}]},
+  reed:{name:'蘆汀',plant:'蘆花',accent:'#cfc2a0',npc:'蘆汀漁父',token:'蘆絮',kind:'quiz',
+    intro:'蒼茫蘆汀，白花搖曳，水鳥低飛。一位漁父收網而歸。\n「蘆花深處有人家──客且答我幾問。」',
+    qs:[{tier:'初階',q:'蘆花叢生水邊，多用以渲染何種氛圍？',o:['蕭瑟清冷','熱鬧繁華','莊嚴肅穆','溫馨甜美'],a:0,e:'蘆花白茫茫一片，常烘托蕭瑟之感。'},
+        {tier:'中階',q:'「蘆荻吐白」所描寫的季節是？',o:['秋','春','夏','冬'],a:0,e:'蘆花於秋日轉白，故云蘆荻吐白。'},
+        {tier:'高階',q:'蘆花最常見於哪一種地景？',o:['河岸水濱（汀洲）','高山之巔','沙漠之中','鬧市街頭'],a:0,e:'蘆葦多生於水邊汀洲。'}]},
+  paulownia:{name:'梧桐院',plant:'梧桐',accent:'#b98f4a',npc:'深院愁客',token:'桐影',kind:'quiz',
+    intro:'深院梧桐，細雨黃昏，點點滴滴。一位愁緒滿懷的詞客憑欄。\n「寂寞梧桐，深院鎖清秋……客可解此情？」',
+    qs:[{tier:'初階',q:'「寂寞梧桐，深院鎖清秋」寫出何種情調？',o:['孤寂清冷的離愁','歡欣熱鬧','閒適自得','慷慨激昂'],a:0,e:'李煜〈相見歡〉，以梧桐寫清秋孤寂。'},
+        {tier:'中階',q:'「梧桐更兼細雨，到黃昏、點點滴滴」出自誰之筆？',o:['李清照','李煜','蘇軾','李白'],a:0,e:'李清照〈聲聲慢〉。'},
+        {tier:'高階',q:'相傳哪種祥鳥「非梧桐不棲」？',o:['鳳凰','仙鶴','大鵬','青鳥'],a:0,e:'鳳凰非梧桐不棲，故梧桐亦象徵高潔。'}]},
+  sunflower:{name:'向陽圃',plant:'葵花',accent:'#e8b32a',npc:'向陽老農',token:'葵心',kind:'quiz',
+    intro:'向陽圃裡，葵花朵朵朝日。一位老農荷鋤含笑。\n「葵藿傾陽，赤心一片。後生，且答我問。」',
+    qs:[{tier:'初階',q:'向日葵（葵花）最常象徵下列何者？',o:['開朗樂觀、向陽','哀傷悲愁','清冷孤高','奢華富貴'],a:0,e:'葵花朝陽，象徵開朗、積極與樂觀。'},
+        {tier:'中階',q:'葵花最顯著的特性是？',o:['花盤隨太陽轉動','夜開晝合','凌寒獨放','落葉知秋'],a:0,e:'向光性使花盤朝向太陽，故名向日葵。'},
+        {tier:'高階',q:'向日葵的花朵通常朝向哪一方，最容易獲得陽光？',o:['太陽所在的方向','完全背向太陽','固定朝向北方','沒有任何方向性'],a:0,e:'向日葵具有向光性，會朝向光源以獲得較多陽光。'}]},
+  phoenix:{name:'鳳凰木',plant:'鳳凰',accent:'#d6452f',npc:'驪歌學長',token:'鳳羽',kind:'quiz',
+    intro:'鳳凰木下，火紅如霞，驪歌將起。一位學長負笈而立。\n「六月鳳凰開，又是別離時──學弟，且答我問。」',
+    qs:[{tier:'初階',q:'校園常見的鳳凰花盛開於哪兩個月，常象徵什麼？',o:['六、七月，象徵畢業','三、四月，象徵入學','九、十月，象徵豐收','一、二月，象徵新年'],a:0,e:'鳳凰花於六七月綻放，正是畢業時節。'},
+        {tier:'中階',q:'鳳凰花火紅燦爛，最常與哪一情景相連？',o:['驪歌（畢業離別）','元宵燈會','端午競渡','中秋賞月'],a:0,e:'鳳凰花開，常伴隨畢業的離情。'},
+        {tier:'高階',q:'傳說鳳凰「非梧桐不棲，非竹實不食」，象徵？',o:['高潔自守、擇善而棲','貪得無厭','隨遇而安','勇猛善戰'],a:0,e:'喻品格高潔、有所不為。'}]}
+};
+
+const TOKEN_MARKS=[
+  'willow','apricot','bamboo','plum','chrysanthemum',
+  'peony','pine','peach','orchid','maple',
+  'osmanthus','reed','paulownia','sunflower','phoenix'
+];
+
+/* ---------- 建築位置 ---------- */
+const BUILDINGS=[
+  {id:'academy',tx:30,ty:20,ax:1535,ay:1000,r:165},
+  {id:'chrysanthemum',tx:8,ty:5,ax:620,ay:440,r:320},{id:'peony',tx:53,ty:5,ax:2360,ay:450,r:330},
+  {id:'willow',tx:6,ty:16,ax:305,ay:760,r:155},{id:'peach',tx:6,ty:24,ax:335,ay:1090,r:165},
+  {id:'orchid',tx:12,ty:30,ax:255,ay:1440,r:155},{id:'apricot',tx:5,ty:34,ax:640,ay:1160,r:235},
+  {id:'maple',tx:55,ty:16,ax:2680,ay:805,r:165},{id:'osmanthus',tx:57,ty:23,ax:2705,ay:1110,r:165},
+  {id:'reed',tx:55,ty:30,ax:2670,ay:1430,r:235},{id:'paulownia',tx:57,ty:34,ax:1535,ay:270,r:205},
+  {id:'plum',tx:6,ty:40,ax:250,ay:1760,r:185},{id:'bamboo',tx:12,ty:42,ax:760,ay:1930,r:165,labelDy:70},{id:'pine',tx:19,ty:18,ax:985,ay:980,r:170},
+  {id:'sunflower',tx:46,ty:40,ax:2700,ay:1780,r:185},{id:'phoenix',tx:52,ty:40,ax:2480,ay:2020,r:210},
+  {id:'lotus',tx:30,ty:31,ax:1535,ay:1665,r:260}
+];
+
+/* ---------- 地圖 ---------- */
+const terr=[], solid=[];
+for(let y=0;y<MAP_H;y++){ terr[y]=[]; solid[y]=[]; for(let x=0;x<MAP_W;x++){ terr[y][x]=0; solid[y][x]=0; } }
+// 湖
+for(let y=35;y<MAP_H;y++) for(let x=20;x<=46;x++){ if(x>=22&&x<=44&&y>=36){terr[y][x]=1;solid[y][x]=1;} else if(terr[y][x]===0)terr[y][x]=2; }
+// 道路
+function hroad(x0,x1,y,w){ for(let x=x0;x<=x1;x++) for(let k=0;k<w;k++){ if(terr[y+k]&&terr[y+k][x]===0)terr[y+k][x]=3; } }
+function vroad(y0,y1,x,w){ for(let y=y0;y<=y1;y++) for(let k=0;k<w;k++){ if(terr[y]&&terr[y][x+k]===0)terr[y][x+k]=3; } }
+hroad(8,56,21,2); vroad(6,34,31,2);
+hroad(8,31,6,1); hroad(31,55,6,1);
+vroad(15,38,10,1); vroad(15,38,57,1);
+hroad(6,20,40,1); hroad(46,56,40,1);
+vroad(38,43,10,1); vroad(21,43,52,1);
+// 建築佔位＋門
+const doorMap={};
+BUILDINGS.forEach(b=>{ for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){ const x=b.tx+dx,y=b.ty+dy; if(x<MAP_W&&y<MAP_H)solid[y][x]=1; }
+  const ex=b.tx+1, ey=b.ty+3; if(ey<MAP_H){ doorMap[ex+','+ey]=b.id; if(terr[ey][ex]===1)terr[ey][ex]=2; solid[ey][ex]=0; } });
+// 樹
+const trees=[];
+function grove(x0,y0,x1,y1,type){ for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){ if(solid[y]&&solid[y][x]===0&&terr[y][x]===0&&!doorMap[x+','+y]){ solid[y][x]=1; trees.push({x,y,type}); } } }
+grove(24,9,28,11,'blossom'); grove(36,9,40,11,'blossom');
+grove(20,14,22,16,'pine'); grove(42,14,44,16,'pine');
+grove(3,11,4,13,'blossom'); grove(60,11,61,13,'pine');
+grove(22,28,24,30,'normal'); grove(40,28,42,30,'normal');
+grove(2,40,3,43,'pine'); grove(60,40,61,43,'pine');
+// 北方山脈（頂端兩列不可通行）
+for(let x=0;x<MAP_W;x++){ solid[0][x]=1; solid[1][x]=1; }
+// 護臺城牆（橫亙於蓮花淨臺之北，中央開門）
+const wallSpec={y:29,x0:23,x1:41,gate:[31,32]};
+for(let x=wallSpec.x0;x<=wallSpec.x1;x++){ if(!wallSpec.gate.includes(x)&&terr[29][x]!==1){ solid[29][x]=1; } }
+
+/* ---------- 繪圖工具 ---------- */
+function px(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x|0,y|0,w|0,h|0); }
+function shade(hex,d){ const n=parseInt(hex.slice(1),16); let r=(n>>16)+d,g=((n>>8)&255)+d,b=(n&255)+d;
+  r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); }
+function hsh(x,y){ let h=(x*92837+y*68917)>>>0; return h%1000; }
+function drawTile(t,sx,sy,gx,gy){
+  const h=hsh(gx,gy);
+  if(t===1){ px(sx,sy,TILE,TILE,'#2d6a96'); px(sx,sy,TILE,TILE/2,'#327099');
+    const ph=(Date.now()/450+gx*2+gy)|0;
+    for(let i=0;i<3;i++){ const yy=sy+7+i*14+((ph+i)%2)*2; px(sx+5,yy,15,2,'#5aa0cf'); px(sx+26,yy+5,12,2,'#4a90c0'); }
+    px(sx,sy,TILE,2,'#255a82'); }
+  else if(t===2){ px(sx,sy,TILE,TILE,'#cdb074'); px(sx+(h%34),sy+8+(h%6),4,4,'#bb9d60'); px(sx+8,sy+30,4,4,'#dcc78c'); px(sx+30,sy+20,3,3,'#bb9d60'); }
+  else if(t===3){ px(sx,sy,TILE,TILE,'#8f7a52'); // 磚石路（錯縫）
+    for(let r=0;r<3;r++){ const off=(r%2)*8; for(let c=-1;c<3;c++){ const v=(((gx+gy+r+c)%3)-1)*6;
+      px(sx+off+c*16+1,sy+r*16+1,14,14,shade('#bda571',v)); } } }
+  else { px(sx,sy,TILE,TILE,'#4f7a33'); if((gx+gy)&1)px(sx,sy,TILE,TILE,'#56803a');
+    px(sx+3+(h%7),sy+6,3,5,'#3c5f27'); px(sx+24,sy+15+(h%6),3,5,'#3c5f27');
+    px(sx+14,sy+30,4,3,'#6f9b48'); px(sx+34,sy+34,3,4,'#3c5f27'); }
+}
+function drawDecor(t,sx,sy,gx,gy){
+  const h=hsh(gx,gy);
+  if(t===0){ if(h<60){ const cols=['#e8d24a','#e87aa0','#e6efff','#e0913a']; const c=cols[h%4];
+      const fx=sx+10+(h%20),fy=sy+16; px(fx,fy,4,4,c); px(fx+1,fy-1,2,2,shade(c,40)); px(fx+1,fy+3,2,5,'#3c5f27'); } }
+  else if(t===1){ if(h<130){ ctx.fillStyle='#2f7d52'; ctx.beginPath(); ctx.ellipse(sx+24,sy+25,13,9,0,0,7); ctx.fill();
+      ctx.fillStyle='#3f9166'; ctx.beginPath(); ctx.ellipse(sx+21,sy+22,6,4,0,0,7); ctx.fill();
+      if(h<26){ ctx.fillStyle='#f2c4da'; ctx.beginPath(); ctx.arc(sx+24,sy+20,5,0,7); ctx.fill(); ctx.fillStyle='#e8d24a'; ctx.beginPath(); ctx.arc(sx+24,sy+20,2,0,7); ctx.fill(); } } }
+}
+function drawTree(sx,sy,type){
+  ctx.fillStyle='rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(sx+24,sy+44,16,6,0,0,7); ctx.fill();
+  px(sx+20,sy+22,8,22,'#5b3b22'); px(sx+20,sy+22,3,22,'#6e4a2c');
+  if(type==='pine'){ for(let i=0;i<4;i++){ const w=38-i*8,yy=sy+2+i*11; ctx.fillStyle=shade('#2c5526',i*7);
+      ctx.beginPath(); ctx.moveTo(sx+24,yy-6); ctx.lineTo(sx+24-w/2,yy+11); ctx.lineTo(sx+24+w/2,yy+11); ctx.closePath(); ctx.fill(); } }
+  else { const base=type==='blossom'?'#4f7e30':'#2f5e2c';
+    ctx.fillStyle=shade(base,-14); ctx.beginPath(); ctx.ellipse(sx+24,sy+18,21,17,0,0,7); ctx.fill();
+    ctx.fillStyle=base; ctx.beginPath(); ctx.ellipse(sx+24,sy+16,18,14,0,0,7); ctx.fill();
+    ctx.fillStyle=shade(base,24); ctx.beginPath(); ctx.ellipse(sx+18,sy+11,9,7,0,0,7); ctx.fill();
+    if(type==='blossom'){ for(let i=0;i<7;i++){ const a=hsh(sx+i,sy); px(sx+8+(a%30),sy+4+(a%22),4,4,'#f2aecb'); } } }
+}
+function lattice(x,y){ px(x,y,26,22,'#3a2a18'); px(x+2,y+2,22,18,'#caa978');
+  ctx.fillStyle='#5b4329'; for(let i=0;i<3;i++)px(x+4+i*7,y+2,2,18,'#7a5a36'); for(let j=0;j<2;j++)px(x+2,y+6+j*7,22,2,'#7a5a36'); }
+function roofShape(eL,eR,rL,rR,eY,rY){ ctx.beginPath(); ctx.moveTo(eL,eY); ctx.lineTo(rL,rY); ctx.lineTo(rR,rY); ctx.lineTo(eR,eY); ctx.closePath(); }
+function drawTiledRoof(eL,eR,rL,rR,eY,rY,tile,dark,light){
+  roofShape(eL,eR,rL,rR,eY,rY); ctx.fillStyle=tile; ctx.fill();
+  ctx.save(); roofShape(eL,eR,rL,rR,eY,rY); ctx.clip();
+  for(let y=rY+3;y<eY;y+=6){ const t=(y-rY)/(eY-rY), lx=eL+(rL-eL)*(1-t), rx=eR+(rR-eR)*(1-t);
+    ctx.fillStyle=(((y-rY)/6|0)%2)?dark:shade(tile,-10); ctx.fillRect(lx,y,rx-lx,2); }
+  ctx.restore();
+  px(rL-2,rY-2,rR-rL+4,4,light);
+  ctx.fillStyle=dark; ctx.fillRect(rL-2,rY-4,rR-rL+4,5);
+  px(rL-6,rY-9,6,8,dark); px(rR,rY-9,6,8,dark); px(rL-7,rY-11,4,4,dark); px(rR+3,rY-11,4,4,dark);
+  ctx.fillStyle=dark; ctx.fillRect(eL,eY-2,eR-eL,4);
+  ctx.fillStyle=light; for(let x=eL+4;x<eR-2;x+=8){ ctx.beginPath(); ctx.arc(x,eY+2,2.4,0,Math.PI); ctx.fill(); }
+  ctx.fillStyle=dark; ctx.beginPath(); ctx.moveTo(eL,eY); ctx.lineTo(eL-9,eY-8); ctx.lineTo(eL-3,eY-1); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(eR,eY); ctx.lineTo(eR+9,eY-8); ctx.lineTo(eR+3,eY-1); ctx.closePath(); ctx.fill();
+}
+function drawBuilding(b){
+  const S=SECTS[b.id], ac=S.accent, W=3*TILE;
+  const sx=b.tx*TILE-cam.x, sy=b.ty*TILE-cam.y, great=!!S.great;
+  const tile='#63727e', dark='#3c4751', light='#828f99';
+  ctx.fillStyle='rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(sx+W/2,sy+W-6,W/2-6,12,0,0,7); ctx.fill();      // 影
+  px(sx+10,sy+W-22,W-20,16,'#9a9387'); px(sx+6,sy+W-8,W-12,8,'#7f7a70'); px(sx+10,sy+W-22,W-20,3,'#aaa499');     // 台基
+  px(sx+20,sy+72,W-40,W-94,'#d7c098'); px(sx+20,sy+72,7,W-94,'#bda478'); px(sx+W-27,sy+72,7,W-94,'#bda478');     // 牆
+  lattice(sx+30,sy+92); lattice(sx+W-56,sy+92);                                                                 // 窗
+  px(sx+W/2-17,sy+96,34,W-118,'#3a2818'); px(sx+W/2-17,sy+96,34,4,'#4f3a24'); px(sx+W/2-1,sy+100,2,W-126,'#6b4f30'); // 門
+  px(sx+W/2-19,sy+94,38,4,'#5a4026');                                                                           // 門楣
+  px(sx+W/2-22,sy+78,44,15,'#2a1c10'); px(sx+W/2-22,sy+78,44,2,'#4a3420');                                       // 匾
+  ctx.fillStyle=shade(ac,50); ctx.font='bold 13px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(S.plant||'院',sx+W/2,sy+86);
+  px(sx+30,sy+74,7,12,shade(ac,-10)); px(sx+W-37,sy+74,7,12,shade(ac,-10));                                      // 燈籠
+  px(sx+31,sy+72,5,2,'#3a2818'); px(sx+W-36,sy+72,5,2,'#3a2818');
+  drawTiledRoof(sx-12,sx+W+12,sx+30,sx+W-30,sy+74,sy+20,tile,dark,light);                                        // 青瓦屋頂
+  if(great){ drawTiledRoof(sx+18,sx+W-18,sx+W/2-22,sx+W/2+22,sy+22,sy-6,tile,dark,light);                        // 重簷
+    px(sx+W/2-2,sy-18,4,14,'#9a3a2a'); px(sx+W/2+2,sy-16,16,10,'#c4513f'); }
+  const col=S.kind==='battle'?'#ffb38a':S.kind==='catch'?'#f3b0cf':S.kind==='quiz'?'#ffe39a':(S.kind==='finale'?'#bfeede':(S.kind==='intro'?'#fff':'#cdb79a'));
+  const topY=great?sy-30:sy+4;
+  ctx.font='bold 13px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='top';
+  ctx.lineWidth=3; ctx.strokeStyle='rgba(0,0,0,.85)'; ctx.strokeText(S.name,sx+W/2,topY); ctx.fillStyle=col; ctx.fillText(S.name,sx+W/2,topY);
+  const tag={battle:'⚔ 切磋',catch:'❀ 小遊戲',quiz:'？ 問答',finale:'★ 終局'}[S.kind];
+  if(tag&&!cleared[b.id]){ ctx.font='11px "Noto Sans TC",sans-serif'; const tw=ctx.measureText(tag).width+8;
+    px(sx+W/2-tw/2,sy+W-2,tw,16,'rgba(20,18,15,.72)'); ctx.fillStyle=col; ctx.textBaseline='top'; ctx.textAlign='center'; ctx.fillText(tag,sx+W/2,sy+W); }
+}
+
+/* ---------- 主角 ---------- */
+const player={x:31*TILE,y:24*TILE,w:30,h:42,dir:'down',frame:0,animT:0,speed:4.0,moving:false};
+function drawHuman(sx,sy,dir,frame,robe,skin){
+  const step=frame?1:-1, bob=frame?1:0, cx=sx+player.w/2, face=dir==='left'?-1:(dir==='right'?1:0);
+  ctx.save();
+  ctx.translate(0,bob);
+  ctx.fillStyle='rgba(0,0,0,.28)';
+  ctx.beginPath(); ctx.ellipse(cx,sy+player.h-3,15,5,0,0,7); ctx.fill();
+
+  // 背劍與劍穗
+  if(dir!=='down'){
+    ctx.save(); ctx.translate(cx,sy+18); ctx.rotate(face?face*.55:-.48);
+    px(-3,-23,5,40,'#6f7882'); px(-5,-25,9,5,'#c9a94a'); px(2,12,3,14,'#b34235');
+    ctx.restore();
+  }
+
+  // 腿與靴，交替前後形成走路感
+  px(sx+8,sy+30+(step>0?2:0),6,10,'#24313d'); px(sx+17,sy+30+(step<0?2:0),6,10,'#24313d');
+  px(sx+6,sy+39+(step>0?2:0),9,4,'#16191c'); px(sx+16,sy+39+(step<0?2:0),9,4,'#16191c');
+
+  // 披風與衣襬
+  ctx.fillStyle=dir==='up'?'#243a56':'#2e5578';
+  ctx.beginPath(); ctx.moveTo(sx+5,sy+12); ctx.lineTo(sx+25,sy+12); ctx.lineTo(sx+29,sy+34); ctx.lineTo(sx+15,sy+39); ctx.lineTo(sx+1,sy+34); ctx.closePath(); ctx.fill();
+  ctx.fillStyle=robe;
+  ctx.beginPath(); ctx.moveTo(sx+7,sy+13); ctx.lineTo(sx+23,sy+13); ctx.lineTo(sx+25,sy+32); ctx.lineTo(sx+15,sy+36+step); ctx.lineTo(sx+5,sy+32); ctx.closePath(); ctx.fill();
+  px(sx+7,sy+15,16,4,shade(robe,28)); px(sx+5,sy+24,20,3,'#c89b3c');
+  px(sx+10,sy+15,3,18,'#e5d4a8'); px(sx+17,sy+15,3,18,'#e5d4a8');
+
+  // 袖與手
+  const armSwing=step*2;
+  px(sx+2,sy+16-armSwing,6,14,shade(robe,-20)); px(sx+22,sy+16+armSwing,6,14,shade(robe,-20));
+  px(sx+3,sy+28-armSwing,5,4,skin); px(sx+22,sy+28+armSwing,5,4,skin);
+
+  // 頭、束髮與表情
+  px(sx+8,sy+3,14,12,skin);
+  ctx.fillStyle='#211d18'; ctx.beginPath(); ctx.ellipse(cx,sy+2,11,7,0,Math.PI,0); ctx.fill();
+  px(sx+12,sy-5,7,7,'#211d18'); px(sx+14,sy-10,4,7,'#211d18'); px(sx+11,sy-7,10,2,'#b68a37');
+  if(dir==='down'){ px(sx+11,sy+9,2,2,'#171717'); px(sx+18,sy+9,2,2,'#171717'); px(sx+14,sy+13,4,1,'#8a4a32'); }
+  else if(dir==='up'){ px(sx+8,sy+5,14,8,'#211d18'); }
+  else if(dir==='left'){ px(sx+9,sy+9,2,2,'#171717'); px(sx+7,sy+5,7,9,'#211d18'); }
+  else { px(sx+19,sy+9,2,2,'#171717'); px(sx+16,sy+5,7,9,'#211d18'); }
+
+  // 面向下時露出側背長劍，增加俠客輪廓
+  if(dir==='down'){
+    ctx.save(); ctx.translate(sx+24,sy+21); ctx.rotate(.42);
+    px(-2,-19,4,36,'#6f7882'); px(-5,-21,10,4,'#c9a94a'); px(1,10,3,13,'#b34235');
+    ctx.restore();
+  }
+  ctx.restore();
+}
+function drawPlayer(){
+  const x=player.x-cam.x, y=player.y-cam.y, bob=player.moving?(player.frame?2:0):0;
+  if(playerMapSprite.complete&&playerMapSprite.naturalWidth){
+    const cellW=playerMapSprite.naturalWidth/2, cellH=playerMapSprite.naturalHeight/2;
+    const cell={down:[0,0],left:[1,0],right:[0,1],up:[1,1]}[player.dir];
+    const sx=cell[0]*cellW,sy=cell[1]*cellH,dx=x-60,dy=y-133+bob,dw=150,dh=190;
+    const legStart=.81,upperSH=cellH*legStart,upperDH=dh*legStart;
+    const step=player.moving?(player.frame?5:-5):0;
+    ctx.save();
+    ctx.fillStyle='rgba(0,0,0,.28)';
+    ctx.beginPath(); ctx.ellipse(x+player.w/2,y+player.h+19,player.moving?25:22,player.moving?6:7,0,0,7); ctx.fill();
+    ctx.imageSmoothingEnabled=true;
+    ctx.drawImage(playerMapSprite,sx,sy,cellW,upperSH,dx,dy,dw,upperDH);
+    ctx.drawImage(playerMapSprite,sx,sy+upperSH,cellW/2,cellH-upperSH,dx-2,dy+upperDH+step,dw/2,dh-upperDH);
+    ctx.drawImage(playerMapSprite,sx+cellW/2,sy+upperSH,cellW/2,cellH-upperSH,dx+dw/2+2,dy+upperDH-step,dw/2,dh-upperDH);
+    ctx.restore();
+    ctx.imageSmoothingEnabled=false;
+    return;
+  }
+  const scale=1.65;
+  ctx.save();
+  ctx.translate(x+player.w/2,y+player.h);
+  ctx.scale(scale,scale);
+  drawHuman(-player.w/2,-player.h,player.dir,player.frame,'#3c6e8f','#e7c39a');
+  ctx.restore();
+}
+function drawMountains(){ if(cam.y>240)return; const baseY=2*TILE-cam.y;
+  ctx.fillStyle='#7b8893'; for(let i=0;i<WORLD_W;i+=120){ const x=i-cam.x; ctx.beginPath(); ctx.moveTo(x-10,baseY); ctx.lineTo(x+60,baseY-70); ctx.lineTo(x+130,baseY); ctx.closePath(); ctx.fill(); }
+  for(let i=-60;i<WORLD_W;i+=160){ const x=i-cam.x, peak=baseY-104;
+    ctx.fillStyle='#5d6a76'; ctx.beginPath(); ctx.moveTo(x-20,baseY+18); ctx.lineTo(x+72,peak); ctx.lineTo(x+164,baseY+18); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#e8eef2'; ctx.beginPath(); ctx.moveTo(x+72,peak); ctx.lineTo(x+52,peak+28); ctx.lineTo(x+64,peak+22); ctx.lineTo(x+72,peak+32); ctx.lineTo(x+82,peak+22); ctx.lineTo(x+92,peak+28); ctx.closePath(); ctx.fill(); }
+  px(0,baseY+14,VW,6,'#3c5f27');
+}
+function drawWall(){ const ws=wallSpec, y0=ws.y*TILE-cam.y, stone='#8d8a82', sd='#6f6c64', lt='#a6a39a';
+  for(let x=ws.x0;x<=ws.x1;x++){ if(ws.gate.includes(x))continue; const sx=x*TILE-cam.x;
+    px(sx,y0-18,TILE,TILE+18,stone); px(sx,y0-18,TILE,4,lt); px(sx,y0-18,3,TILE+18,sd);
+    for(let r=0;r<3;r++)px(sx+(r%2?8:0),y0-10+r*14,TILE,1,sd);
+    px(sx,y0-26,18,10,stone); px(sx+26,y0-26,18,10,stone); px(sx,y0-26,18,3,lt); px(sx+26,y0-26,18,3,lt); }
+  const gx=ws.gate[0]*TILE-cam.x, gw=ws.gate.length*TILE;
+  px(gx-4,y0-6,gw+8,TILE+6,'#7a5230');
+  ctx.fillStyle='#2a1c12'; ctx.fillRect(gx+gw/2-16,y0-2,32,TILE+2); ctx.beginPath(); ctx.arc(gx+gw/2,y0-2,16,Math.PI,0); ctx.fill();
+  px(gx+gw/2-2,y0-2,2,TILE,'#4f3a24');
+  px(gx-10,y0-44,gw+20,30,'#caa978'); px(gx-6,y0-40,gw+12,4,'#b08f5e');
+  drawTiledRoof(gx-22,gx+gw+22,gx+6,gx+gw-6,y0-44,y0-86,'#63727e','#3c4751','#828f99');
+  px(gx+gw/2-22,y0-40,44,14,'#2a1c10'); ctx.fillStyle='#bfeede'; ctx.font='bold 12px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('淨臺',gx+gw/2,y0-33);
+}
+
+/* ---------- 鏡頭／碰撞 ---------- */
+const cam={x:0,y:0};
+const CAMERA_PLAYER_Y=.72;
+function updateCam(){ cam.x=Math.max(0,Math.min(WORLD_W-VW,Math.round(player.x+player.w/2-VW/2)));
+  cam.y=Math.max(0,Math.min(WORLD_H-VH,Math.round(player.y+player.h/2-VH*CAMERA_PLAYER_Y))); }
+const bgSolids=[
+  {type:'rect',x:0,y:0,w:WORLD_W,h:150},                 // 北方山頭
+  {type:'rect',x:920,y:1360,w:455,h:820,water:true},     // 蓮池左水域
+  {type:'rect',x:1695,y:1360,w:455,h:820,water:true},    // 蓮池右水域
+  {type:'rect',x:1050,y:1285,w:320,h:260,water:true},    // 蓮池左上水域
+  {type:'rect',x:1705,y:1285,w:320,h:260,water:true},    // 蓮池右上水域
+  {type:'ellipse',x:1110,y:1940,rx:245,ry:210,water:true}, // 蓮池左下水域
+  {type:'ellipse',x:1960,y:1940,rx:245,ry:210,water:true}  // 蓮池右下水域
+];
+const bgPassages=[
+  {type:'rect',x:1415,y:1160,w:245,h:1140},              // 中央大道與蓮橋
+  {type:'rect',x:840,y:1470,w:220,h:834},                // 此君軒旁的下行陸路
+  {type:'ellipse',x:1535,y:1665,rx:330,ry:250}           // 蓮花淨臺平台
+];
+function blocked(nx,ny){ const pts=[[nx+3,ny+14],[nx+player.w-3,ny+14],[nx+3,ny+player.h-1],[nx+player.w-3,ny+player.h-1]];
+  const useBgCollision=worldBgReady&&!worldBgFailed;
+  for(const[ptx,pty]of pts){ const gx=(ptx/TILE)|0,gy=(pty/TILE)|0; if(gx<0||gy<0||gx>=MAP_W||gy>=MAP_H)return true;
+    if(useBgCollision?backgroundBlocked(ptx,pty):solid[gy][gx])return true; }
+  return false; }
+function inShape(s,x,y){
+  if(s.type==='rect')return x>=s.x&&x<=s.x+s.w&&y>=s.y&&y<=s.y+s.h;
+  const dx=(x-s.x)/s.rx, dy=(y-s.y)/s.ry; return dx*dx+dy*dy<=1;
+}
+function backgroundBlocked(x,y){
+  let waterHit=false;
+  for(const s of bgSolids){
+    if(!inShape(s,x,y))continue;
+    if(s.water)waterHit=true;
+    else return true;
+  }
+  if(waterHit){
+    for(const p of bgPassages){ if(inShape(p,x,y))return false; }
+    return true;
+  }
+  return false;
+}
+function sectAnchor(b){
+  const S=SECTS[b.id], major=S.great||b.id==='academy';
+  if(b.ax&&b.ay)return {x:b.ax,y:b.ay,r:b.r||(b.id==='lotus'?150:(major?122:86))};
+  return {x:(b.tx+1.5)*TILE,y:(b.ty+(major?2.6:2.8))*TILE,r:b.id==='lotus'?150:(major?122:86)};
+}
+function nearestSect(){
+  const px=player.x+player.w/2, py=player.y+player.h/2;
+  let hit=null, best=Infinity;
+  for(const b of BUILDINGS){
+    const a=sectAnchor(b), d=Math.hypot(px-a.x,py-a.y);
+    if(d<a.r&&d<best){ hit=b.id; best=d; }
+  }
+  return hit;
+}
+
+/* ---------- 輸入 ---------- */
+const keys={}; let mode='intro'; const move={u:0,d:0,l:0,r:0};
+addEventListener('keydown',e=>{ keys[e.key.toLowerCase()]=true;
+  if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault();
+  if(mode==='world'&&(e.key===' '||e.key==='Enter'))tryInteract(); });
+addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+function bindHold(id,k){ const el=document.getElementById(id); const on=e=>{e.preventDefault();move[k]=1;}, off=e=>{e.preventDefault();move[k]=0;};
+  el.addEventListener('touchstart',on,{passive:false}); el.addEventListener('touchend',off); el.addEventListener('touchcancel',off);
+  el.addEventListener('mousedown',on); el.addEventListener('mouseup',off); el.addEventListener('mouseleave',off); }
+['du','u','dd','d','dl','l','dr','r'].length; bindHold('du','u');bindHold('dd','d');bindHold('dl','l');bindHold('dr','r');
+document.getElementById('act').addEventListener('touchstart',e=>{e.preventDefault();if(mode==='world')tryInteract();},{passive:false});
+document.getElementById('act').addEventListener('click',()=>{if(mode==='world')tryInteract();});
+if('ontouchstart'in window||(typeof navigator!=='undefined'&&navigator.maxTouchPoints>0)){
+  document.getElementById('pad').classList.add('show'); document.getElementById('act').classList.add('show');
+}
+function inputVec(){ let dx=0,dy=0; if(keys['a']||keys['arrowleft']||move.l)dx-=1; if(keys['d']||keys['arrowright']||move.r)dx+=1;
+  if(keys['w']||keys['arrowup']||move.u)dy-=1; if(keys['s']||keys['arrowdown']||move.d)dy+=1; return [dx,dy]; }
+function tryInteract(){ const cx=((player.x+player.w/2)/TILE)|0,cy=((player.y+player.h/2)/TILE)|0; let fx=cx,fy=cy;
+  if(chest&&Math.hypot(player.x+player.w/2-chest.x,player.y+player.h/2-chest.y)<110){ openChest(); return; }
+  if(player.dir==='up')fy--; else if(player.dir==='down')fy++; else if(player.dir==='left')fx--; else fx++;
+  const id=doorMap[fx+','+fy]||doorMap[cx+','+cy]||nearestSect(); if(id){ sEnter(); enterSect(id); } }
+
+/* ---------- 面板／答題 ---------- */
+const panel=document.getElementById('panel'),elSp=document.getElementById('speaker'),elSay=document.getElementById('say'),
+  elOpts=document.getElementById('opts'),elHint=document.getElementById('hint'),elNext=document.getElementById('next'),
+  elPortrait=document.getElementById('npcPortrait');
+let flow=null;
+function openPanel(id){ if(id){ elPortrait.src='assets/portraits/'+id+'.webp'; elPortrait.alt=(id==='academy'?'山長':SECTS[id].npc)+'關主圖片'; } panel.classList.add('show'); }
+function closePanel(){ panel.classList.remove('show','battle-panel'); mode='world'; elOpts.innerHTML=''; elHint.textContent=''; elNext.classList.remove('show'); flow=null; }
+function showNext(t,fn){ elNext.textContent=t; elNext.classList.add('show'); flow={onNext:fn}; }
+elNext.onclick=()=>{ if(flow&&flow.onNext)flow.onNext(); };
+function shuffleQuestion(q){
+  const options=q.o.map((text,original)=>({text,original}));
+  for(let i=options.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [options[i],options[j]]=[options[j],options[i]]; }
+  return {options,answer:options.findIndex(option=>option.original===q.a)};
+}
+
+const MAX_HEALTH=4;
+const cleared={}; let score=0,tokens=0,lotusDone=false,health=MAX_HEALTH;
+function loseHealth(){
+  health=Math.max(0,health-1);
+  updateHUD();
+  return health>0;
+}
+function showGameOver(){
+  panel.classList.remove('show'); mode='card'; card.classList.add('show');
+  cardInner.innerHTML='<h1>體力耗盡</h1><div class="sub">闖　關　失　敗</div>'+
+    '<p>答錯四次，體力已歸零。重新整裝後再訪群芳。</p>'+
+    '<button id="retryBtn">重新開始</button>';
+  document.getElementById('retryBtn').onclick=()=>location.reload();
+}
+function enterSect(id){
+  const S=SECTS[id];
+  if(id==='academy'){ mode='dialog'; openPanel('academy'); elSp.innerHTML='山長　<span class="plant">翰墨書院</span>';
+    elSay.textContent='「文可載道，武可守心。水陸草木之花，可愛者甚蕃，群芳武林亦各守一門心法。」\n少年俠士，翰墨書院以詩書養氣、以劍理明志。此間各派有的論學問答、有的切磋招式、有的磨練身法。\n你當遍訪群芳門派、過其考驗，集得信物，終至蓮花淨臺，參透濂溪心法與君子之道。';
+    elOpts.innerHTML=''; elHint.textContent='山長授你「翰墨心訣」：走到門前按「查探」（電腦為空白鍵）即可拜訪門派。'; showNext('領受心訣',closePanel); return; }
+  if(S.kind==='finale'){ enterLotus(); return; }
+  if(!S.kind||S.kind==='soon'||(!S.qs&&!S.bonus&&S.kind!=='catch')){ mode='dialog'; openPanel(id);
+    elSp.innerHTML=(S.npc||S.name)+'　<span class="plant">'+S.plant+'</span>';
+    elSay.textContent='此門派將於後續章節開放，敬請期待。'; elOpts.innerHTML=''; elHint.textContent='【'+S.plant+'】意象：'+S.teaser; showNext('告辭',closePanel); return; }
+  if(cleared[id]){ mode='dialog'; openPanel(id); elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'</span>';
+    elSay.textContent='「'+S.plant+'之德，你已了然於心。去訪他派罷。」'; elOpts.innerHTML=''; elHint.textContent=''; showNext('告辭',closePanel); return; }
+  mode='dialog'; openPanel(id); elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'</span>'; elSay.textContent=S.intro; elOpts.innerHTML=''; elHint.textContent='';
+  if(S.kind==='quiz') showNext('受教',()=>runQuiz(id,0,0));
+  else if(S.kind==='battle') showNext('切磋一場',()=>startBattle(id));
+  else if(S.kind==='catch') showNext('入塢尋梅',()=>startCatch(id));
+}
+
+function runQuiz(id,i,got){ const S=SECTS[id],q=S.qs[i],shown=shuffleQuestion(q); elNext.classList.remove('show'); elHint.textContent='';
+  elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'　·　'+q.tier+'</span>'; elSay.textContent=q.q; elOpts.innerHTML='';
+  let done=false; shown.options.forEach((option,idx)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=String.fromCharCode(65+idx)+'. '+option.text;
+    b.onclick=()=>{ if(done)return; done=true; const pts={'初階':10,'中階':15,'高階':20}[q.tier]; [...elOpts.children].forEach(c=>c.setAttribute('disabled',''));
+      if(idx===shown.answer){ b.classList.add('correct'); sOk(); score+=pts; got+=pts; elHint.textContent='✓ 答對！　'+q.e+'　（雅興值 +'+pts+'）'; }
+      else{ b.classList.add('wrong'); elOpts.children[shown.answer].classList.add('correct'); sNo(); elHint.textContent='✗ 正解為 '+String.fromCharCode(65+shown.answer)+'。　'+q.e+'　（體力 -1）';
+        if(!loseHealth()){ showNext('力竭倒下',showGameOver); return; } }
+      updateHUD(); if(i+1<S.qs.length)showNext('下一題 ▸',()=>runQuiz(id,i+1,got)); else showNext('完成試煉',()=>finishSect(id,got)); };
+    elOpts.appendChild(b); }); }
+function finishSect(id,got){ const S=SECTS[id]; if(!cleared[id]){cleared[id]=true;tokens++;} updateHUD();
+  elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'</span>'; elOpts.innerHTML='';
+  elSay.textContent='「善哉。此『'+S.token+'』信物，你且收下。」\n（本派得分 '+got+'　·　累計信物 '+tokens+' 枚）';
+  elHint.textContent=tokens>=TOKEN_MARKS.length?'所有門派皆已完成，可前往湖心「蓮花淨臺」挑戰終局。':'完成所有門派（集滿 15 枚信物），才可前往蓮花淨臺。'; sWin(); startFireworks(S.accent); showNext('收下信物',closePanel); }
+
+/* ---------- 切磋格鬥 ---------- */
+const BATTLE_TECHNIQUES=[
+  {name:'流雲劍式',type:'sword',mark:'劍'},
+  {name:'摧岳掌法',type:'palm',mark:'掌'},
+  {name:'驚虹指法',type:'finger',mark:'指'},
+  {name:'踏月身法',type:'step',mark:'身'}
+];
+let bt=null;
+function startBattle(id){ const S=SECTS[id]; bt={id,ac:S.accent,oMax:100,oHP:100,pMax:100,pHP:100,qi:0,t:0,plunge:0,olunge:0,fp:0,fo:0,dmg:null,name:'',slash:0,side:'',flash:0,fxType:'sword'}; mode='battle'; askBattle(); }
+function askBattle(){ const S=SECTS[bt.id],q=S.qs[bt.qi%S.qs.length],shown=shuffleQuestion(q); openPanel(bt.id); panel.classList.add('battle-panel'); elNext.classList.remove('show');
+  elSp.innerHTML=S.npc+'　<span class="plant">武學切磋　·　'+q.tier+'</span>'; elSay.textContent=q.q; elHint.textContent='選擇一式武功作答；判斷正確方能招式得手。'; elOpts.innerHTML='';
+  let done=false; shown.options.forEach((option,idx)=>{ const technique=BATTLE_TECHNIQUES[idx],b=document.createElement('button'); b.className='opt'; b.textContent=String.fromCharCode(65+idx)+'. '+option.text+'　【'+technique.name+'】';
+    b.onclick=()=>{ if(done)return; done=true; [...elOpts.children].forEach(c=>c.setAttribute('disabled','')); const ok=idx===shown.answer;
+      if(!ok)elOpts.children[shown.answer].classList.add('correct'); b.classList.add(ok?'correct':'wrong'); resolveBattle(ok,q,shown.answer,technique); }; elOpts.appendChild(b); }); }
+function resolveBattle(ok,q,answer,technique){ const S=SECTS[bt.id]; let alive=true; bt.fxType=technique.type;
+  if(ok){ bt.plunge=14; bt.fo=14; bt.oHP=Math.max(0,bt.oHP-40); bt.name=technique.name; bt.slash=20; bt.side='o'; bt.flash=11; score+=15; sHit(); bt.dmg={x:VW-250,y:150,v:'-40',c:'#ffe39a'}; elHint.textContent='✓ '+q.e+'　你運起「'+technique.name+'」，一招得手！'; }
+  else{ bt.olunge=14; bt.fp=14; bt.pHP=Math.max(0,bt.pHP-22); bt.name=S.move+'・反制'; bt.slash=20; bt.side='p'; bt.flash=7; sNo(); bt.dmg={x:250,y:160,v:'-22',c:'#ff8a6b'}; alive=loseHealth(); elHint.textContent='✗ 正解為 '+String.fromCharCode(65+answer)+'。　'+q.e+'　招式露出破綻，被「'+S.move+'」反制！（體力 -1）'; }
+  updateHUD();
+  setTimeout(()=>{ if(!alive){ showGameOver(); }
+    else if(bt.oHP<=0){ elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'</span>'; elSay.textContent='「好俊的功夫！這一場，是你勝了。」'; elOpts.innerHTML=''; showNext('收下信物',()=>{ mode='dialog'; finishSect(bt.id,45); }); }
+    else if(bt.pHP<=0){ elSay.textContent='你體力不支，敗下陣來……'; elOpts.innerHTML=''; elHint.textContent='可再戰一場，或先行告退。';
+      const r=document.createElement('button'); r.className='opt'; r.textContent='再 戰'; r.onclick=()=>{bt.pHP=bt.pMax;bt.oHP=bt.oMax;bt.qi=0;askBattle();};
+      const g=document.createElement('button'); g.className='opt'; g.textContent='告 退'; g.onclick=closePanel; elOpts.innerHTML=''; elOpts.appendChild(r); elOpts.appendChild(g); }
+    else{ bt.qi++; showNext('再來一招 ▸',askBattle); } },560);
+}
+function drawBattle(){ const S=SECTS[bt.id], ac=S.accent;
+  px(0,0,VW,VH,shade(ac,-66)); px(0,VH-150,VW,150,shade(ac,-92));
+  for(let i=0;i<11;i++){ px(40+i*70,70,5,VH-230,shade(ac,-52)); }
+  px(0,VH-150,VW,5,shade(ac,-30)); ctx.fillStyle='rgba(0,0,0,.22)'; ctx.fillRect(0,0,VW,VH);
+  ctx.fillStyle='rgba(0,0,0,.36)'; ctx.beginPath(); ctx.ellipse(250,570,150,28,0,0,7); ctx.fill(); ctx.beginPath(); ctx.ellipse(VW-250,570,150,28,0,0,7); ctx.fill();
+  function bar(x,y,w,hp,max,col,name){ px(x-2,y-2,w+4,20,'rgba(0,0,0,.55)'); px(x,y,w*(hp/max),16,col); px(x,y,w*(hp/max),4,shade(col,30));
+    ctx.fillStyle='#fff'; ctx.font='13px "Noto Sans TC",sans-serif'; ctx.textAlign='left'; ctx.textBaseline='bottom'; ctx.fillText(name,x,y-4); }
+  bar(40,40,260,bt.pHP,bt.pMax,'#4aa3d6','翰墨少俠'); bar(VW-300,40,260,bt.oHP,bt.oMax,'#d65a4a',S.npc);
+  drawBattlePortrait(playerBattlePortrait,80-(bt.plunge*4),105,340,454,false,bt.fp);
+  drawBattlePortrait(elPortrait,VW-420+(bt.olunge*4),105,340,454,true,bt.fo);
+  if(bt.slash>0){ const p=bt.slash/20, prog=1-p, hy=300;
+    const tx=bt.side==='o'?VW-250:250, fx=bt.side==='o'?310:VW-310, col=bt.side==='o'?ac:'#cdd6e2';
+    ctx.save(); ctx.lineCap='round';
+    if(bt.fxType==='sword'){
+      const lx=fx+(tx-fx)*Math.min(1,prog*1.7);
+      ctx.globalAlpha=.4*p;ctx.strokeStyle=col;ctx.lineWidth=18;ctx.beginPath();ctx.moveTo(lx-58,hy-32);ctx.lineTo(lx+22,hy+14);ctx.stroke();
+      ctx.globalAlpha=.9*p;ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(lx-50,hy-28);ctx.lineTo(lx+18,hy+11);ctx.stroke();
+    }else if(bt.fxType==='palm'){
+      const lx=fx+(tx-fx)*Math.min(1,prog*1.45),r=24+prog*36;
+      ctx.globalAlpha=.75*p;ctx.fillStyle=col;ctx.beginPath();ctx.arc(lx,hy,r,0,7);ctx.fill();
+      ctx.globalAlpha=.9*p;ctx.strokeStyle='#fff';ctx.lineWidth=5;ctx.beginPath();ctx.arc(lx,hy,r*.7,0,7);ctx.stroke();
+      ctx.strokeStyle=col;ctx.lineWidth=8;ctx.beginPath();ctx.arc(tx,hy,30+prog*70,0,7);ctx.stroke();
+    }else if(bt.fxType==='finger'){
+      const lx=fx+(tx-fx)*Math.min(1,prog*2);
+      ctx.globalAlpha=.95*p;ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(fx,hy);ctx.lineTo(lx,hy);ctx.stroke();
+      ctx.strokeStyle=col;ctx.lineWidth=12;ctx.globalAlpha=.35*p;ctx.beginPath();ctx.moveTo(fx,hy);ctx.lineTo(lx,hy);ctx.stroke();
+      for(let s=0;s<7;s++){const a=s/7*6.28,r=18+prog*48;ctx.globalAlpha=p;ctx.fillStyle=s%2?'#fff':col;ctx.beginPath();ctx.arc(tx+Math.cos(a)*r,hy+Math.sin(a)*r,4,0,7);ctx.fill();}
+    }else{
+      for(let s=0;s<5;s++){const t=Math.max(0,prog-s*.08),lx=fx+(tx-fx)*Math.min(1,t*1.8);
+        ctx.globalAlpha=(.52-s*.08)*p;ctx.fillStyle=s%2?'#fff':col;ctx.beginPath();ctx.ellipse(lx,hy,20+s*6,54-s*5,0,0,7);ctx.fill();}
+      const r=28+prog*85;ctx.globalAlpha=.85*p;ctx.strokeStyle=col;ctx.lineWidth=7;ctx.beginPath();ctx.arc(tx,hy,r,0,7);ctx.stroke();
+    }
+    if(prog>.42){ const a=(prog-.42)/.58,R=28+a*58;
+      ctx.globalAlpha=(1-a)*.9;ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(tx,hy,R,0,7);ctx.stroke(); }
+    ctx.restore(); bt.slash--; }
+  if(bt.flash>0){ ctx.fillStyle='rgba(255,255,255,'+(bt.flash/22*.5)+')'; ctx.fillRect(0,0,VW,VH); bt.flash--; }
+  if(bt.plunge>0){ ctx.save(); ctx.globalAlpha=Math.min(1,bt.plunge/8); ctx.fillStyle='#ffe39a'; ctx.font='bold 30px "Noto Serif TC",serif'; ctx.textAlign='center';
+    ctx.lineWidth=4; ctx.strokeStyle='rgba(0,0,0,.7)'; ctx.strokeText(bt.name,VW/2,128); ctx.fillText(bt.name,VW/2,128); ctx.restore(); }
+  if(bt.dmg&&(bt.plunge>0||bt.olunge>0)){ ctx.fillStyle=bt.dmg.c; ctx.font='bold 26px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText(bt.dmg.v,bt.dmg.x,bt.dmg.y-(14-Math.max(bt.plunge,bt.olunge))*2); }
+  if(bt.plunge>0)bt.plunge--; if(bt.olunge>0)bt.olunge--; if(bt.fp>0)bt.fp--; if(bt.fo>0)bt.fo--;
+}
+function drawBattlePortrait(img,x,y,w,h,flip,flash){
+  if(!img.complete||!img.naturalWidth)return;
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,.65)'; ctx.shadowBlur=20; ctx.shadowOffsetY=10;
+  ctx.fillStyle='rgba(18,15,12,.8)'; roundRect(x-8,y-8,w+16,h+16,14,true,false);
+  ctx.shadowColor='transparent';
+  ctx.strokeStyle='#c79a3a'; ctx.lineWidth=5; roundRect(x-5,y-5,w+10,h+10,12,false,true);
+  ctx.beginPath(); roundRect(x,y,w,h,9,false,false); ctx.clip();
+  if(flip){ ctx.save(); ctx.translate(x+w,y); ctx.scale(-1,1); ctx.drawImage(img,0,0,img.naturalWidth,img.naturalHeight,0,0,w,h); ctx.restore(); }
+  else ctx.drawImage(img,0,0,img.naturalWidth,img.naturalHeight,x,y,w,h);
+  if(flash>0){ ctx.fillStyle='rgba(255,255,255,'+(flash/28)+')'; ctx.fillRect(x,y,w,h); }
+  ctx.restore();
+}
+function drawHumanRaw(sx,sy,dir,frame,robe,skin,beard){ // 戰鬥放大繪製
+  px(sx+5,sy+22,6,8,'#2f2d28'); px(sx+13,sy+22,6,8,'#2f2d28');
+  px(sx+21,sy,4,22,'#9a9a9a'); px(sx+20,sy-2,6,4,'#caa13a');             // 劍
+  px(sx+1,sy+9,22,16,robe); px(sx+1,sy+9,22,3,shade(robe,24));
+  px(sx+1,sy+13,22,2,'#d8b24a'); px(sx-1,sy+12,4,12,shade(robe,-16)); px(sx+21,sy+12,4,12,shade(robe,-16));
+  px(sx+1,sy+19,22,2,'#b07a2a'); px(sx+5,sy,14,11,skin); px(sx+4,sy-4,16,6,'#23201b');
+  px(sx+15,sy+5,2,2,'#1a1a1a'); if(beard)px(sx+8,sy+11,9,4,'#dcdcdc'); }
+
+/* ---------- 踏雪尋梅（接花） ---------- */
+let cat=null;
+function startCatch(id){ cat={id,bx:VW/2,got:0,need:8,miss:0,items:[],t:0,spawn:0}; mode='catch'; panel.classList.remove('show'); }
+function updateCatch(){ const c=cat,[dx]=[inputVec()[0]]; c.bx=Math.max(68,Math.min(VW-68,c.bx+dx*5.8)); c.t++;
+  if(--c.spawn<=0){ c.spawn=26; const bad=Math.random()<.28; c.items.push({x:72+Math.random()*(VW-144),y:-28,vy:2.2+Math.random()*1.6,bad}); }
+  for(const it of c.items){ it.y+=it.vy; if(it.caught)continue;
+    if(it.y>VH-104&&it.y<VH-30&&Math.abs(it.x-c.bx)<76){ it.caught=true; if(it.bad){c.miss++;sNo();} else {c.got++;sOk();} } }
+  c.items=c.items.filter(it=>it.y<VH+30&&!it.caught);
+  if(c.got>=c.need){ mode='world'; catchSuccess(); }
+  if(c.miss>=4){ mode='catchfail'; setTimeout(()=>{ if(mode==='catchfail')startCatch(c.id); },800); }
+}
+function drawCatch(){ const c=cat; px(0,0,VW,VH,'#2a3550'); for(let i=0;i<VH;i+=14)px(0,i,VW,2,'#2f3c5c'); // 夜雪
+  for(let i=0;i<40;i++){ const sx=(i*97+(c.t*1.5))%VW, sy=(i*53+c.t*2)%VH; px(sx,sy,3,3,'rgba(255,255,255,.5)'); }
+  // 梅樹剪影
+  px(60,VH-200,14,200,'#1b2236'); px(60,VH-160,80,12,'#1b2236'); px(120,VH-200,12,80,'#1b2236');
+  c.items.forEach(it=>{ if(it.bad){ px(it.x-16,it.y,32,9,'#6b5536'); px(it.x-4,it.y-14,9,28,'#6b5536'); }
+    else{ ctx.fillStyle='#f0a8c6'; for(let k=0;k<5;k++){const a=k/5*6.28; ctx.beginPath(); ctx.arc(it.x+Math.cos(a)*13,it.y+Math.sin(a)*13,10,0,7); ctx.fill();} ctx.fillStyle='#e8d24a'; ctx.beginPath(); ctx.arc(it.x,it.y,7,0,7); ctx.fill(); } });
+  // 籃
+  px(c.bx-58,VH-86,116,58,'#7a4a26'); px(c.bx-58,VH-86,116,10,'#b07a3c');
+  for(let i=0;i<8;i++)px(c.bx-48+i*14,VH-76,5,40,'#5b3518');
+  ctx.strokeStyle='#c28a48'; ctx.lineWidth=7; ctx.beginPath(); ctx.arc(c.bx,VH-84,48,Math.PI,0); ctx.stroke();
+  ctx.fillStyle='#fff'; ctx.font='15px "Noto Sans TC",sans-serif'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillText('已接梅花　'+c.got+'／'+c.need+'　　誤接枯枝　'+c.miss+'／4',20,18);
+  ctx.textAlign='center'; ctx.fillText('◀ ▶ 移動花籃，接住飄落的梅花', VW/2, VH-92);
+  if(mode==='catchfail'){ px(0,0,VW,VH,'rgba(0,0,0,.55)'); ctx.fillStyle='#e8b9b0'; ctx.font='bold 22px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('枯枝誤接太多，重來……',VW/2,VH/2); }
+}
+function catchSuccess(){ const S=SECTS.plum; sWin(); openPanel('plum'); mode='dialog'; elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'</span>';
+  elSay.textContent='「滿籃疏影暗香，雅人深致也。再考你一問——」'; elOpts.innerHTML=''; const q=S.bonus,shown=shuffleQuestion(q);
+  elHint.textContent=''; let done=false; shown.options.forEach((option,idx)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=String.fromCharCode(65+idx)+'. '+option.text;
+    b.onclick=()=>{ if(done)return; done=true; [...elOpts.children].forEach(c=>c.setAttribute('disabled','')); const ok=idx===shown.answer;
+      if(!ok)elOpts.children[shown.answer].classList.add('correct'); b.classList.add(ok?'correct':'wrong'); if(ok){sOk();score+=20;}else{sNo();if(!loseHealth()){elHint.textContent=q.e+'　（體力 -1）';showNext('力竭倒下',showGameOver);return;}}
+      elHint.textContent=q.e+'　（雅興值 +'+(ok?20:0)+(ok?'':'，體力 -1')+'）'; updateHUD(); showNext('收下信物',()=>finishSect('plum',ok?40:20)); };
+    elOpts.appendChild(b); }); }
+
+/* ---------- 蓮花派終局（穿汙泥） ---------- */
+function enterLotus(){ const S=SECTS.lotus;
+  if(tokens<TOKEN_MARKS.length){ mode='dialog'; openPanel('lotus'); elSp.innerHTML='濂溪先生　<span class="plant">蓮</span>'; elSay.textContent=S.locked; elOpts.innerHTML=''; elHint.textContent=''; showNext('告退',closePanel); return; }
+  if(lotusDone){ mode='dialog'; openPanel('lotus'); elSp.innerHTML='濂溪先生　<span class="plant">蓮</span>'; elSay.textContent='「蓮，花之君子者也。同予者──正是你。」'; elOpts.innerHTML=''; elHint.textContent=''; showNext('告退',closePanel); return; }
+  mode='dialog'; openPanel('lotus'); elSp.innerHTML='濂溪先生　<span class="plant">蓮</span>'; elSay.textContent=S.intro; elOpts.innerHTML='';
+  elHint.textContent='【小遊戲】操控蓮，由下方渡到上方淨臺；部分淤泥會追逐移動，須閃躲避開。'; showNext('入池',startMud); }
+let mud=null;
+function startMud(){ panel.classList.remove('show'); mode='mud'; const blobs=[];
+  for(let i=0;i<26;i++) blobs.push({x:70+Math.random()*(VW-140),y:110+Math.random()*(VH-300),r:16+Math.random()*12,
+    vx:(Math.random()-.5)*1.2,vy:(Math.random()-.5)*1.0,chase:i<12});
+  mud={px:VW/2,py:VH-48,r:13,stain:0,max:100,blobs,cd:0}; }
+function updateMud(){ const m=mud,[dx,dy]=inputVec(),sp=3.0; m.px+=dx*sp;m.py+=dy*sp;
+  m.px=Math.max(16,Math.min(VW-16,m.px)); m.py=Math.max(16,Math.min(VH-16,m.py));
+  m.blobs.forEach(b=>{ if(b.chase){ const d=Math.hypot(m.px-b.x,m.py-b.y)||1;
+      b.vx=b.vx*.96+(m.px-b.x)/d*.055; b.vy=b.vy*.96+(m.py-b.y)/d*.055;
+      const v=Math.hypot(b.vx,b.vy),max=1.65; if(v>max){b.vx=b.vx/v*max;b.vy=b.vy/v*max;} }
+    b.x+=b.vx;b.y+=b.vy; if(b.x<40||b.x>VW-40)b.vx*=-1; if(b.y<90||b.y>VH-70)b.vy*=-1; });
+  if(m.cd>0)m.cd--; for(const b of m.blobs){ if(Math.hypot(m.px-b.x,m.py-b.y)<m.r+b.r&&m.cd===0){ m.stain+=14;m.cd=18;sNo(); } }
+  if(m.stain>=m.max){ m.stain=m.max; mode='mudfail'; setTimeout(()=>{ if(mode==='mudfail')startMud(); },700); return; }
+  if(m.py<=112&&Math.abs(m.px-VW/2)<110){ mode='world'; lotusSuccess(); } }
+function drawMud(){ const m=mud; px(0,0,VW,VH,'#274e6e'); for(let i=0;i<VH;i+=12)px(0,i,VW,2,'#2c577a');
+  px(VW/2-110,76,220,46,'#cfe7d8'); px(VW/2-110,76,220,6,'#eaf6ee'); ctx.fillStyle='#2f6f5a'; ctx.font='bold 22px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('蓮花淨臺',VW/2,99);
+  m.blobs.forEach(b=>{ ctx.fillStyle=b.chase?'#49381f':'#5b4a2c'; ctx.beginPath(); ctx.arc(b.x,b.y,b.r,0,7); ctx.fill();
+    ctx.fillStyle=b.chase?'#806234':'#6e5a36'; ctx.beginPath(); ctx.arc(b.x-b.r*.3,b.y-b.r*.3,b.r*.5,0,7); ctx.fill();
+    if(b.chase){ ctx.fillStyle='#d8b24a'; ctx.beginPath(); ctx.arc(b.x+b.r*.25,b.y-b.r*.18,2.5,0,7); ctx.fill(); } });
+  const dirty=Math.min(1,m.stain/m.max); ctx.fillStyle=dirty>.5?'#9a8f6a':'#f3c6da';
+  for(let k=0;k<6;k++){ const a=k/6*6.28; ctx.beginPath(); ctx.ellipse(m.px+Math.cos(a)*11,m.py+Math.sin(a)*11,7,11,a,0,7); ctx.fill(); }
+  ctx.fillStyle='#e8d24a'; ctx.beginPath(); ctx.arc(m.px,m.py,6,0,7); ctx.fill();
+  px(18,VH-36,252,20,'rgba(0,0,0,.55)'); px(21,VH-33,246*(m.stain/m.max),14,dirty>.5?'#b14a2f':'#caa23a');
+  ctx.fillStyle='#fff'; ctx.font='bold 17px "Noto Sans TC",sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('染　'+Math.round(m.stain)+'／'+m.max+'　　↑ 渡向淨臺',18,VH-52);
+  if(mode==='mudfail'){ px(0,0,VW,VH,'rgba(0,0,0,.55)'); ctx.fillStyle='#e8b9b0'; ctx.font='bold 22px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('沾染太深，重整再來……',VW/2,VH/2); } }
+function lotusSuccess(){ sWin(); mode='dialog'; openPanel('lotus'); elSp.innerHTML='濂溪先生　<span class="plant">蓮</span>';
+  elSay.textContent='「過矣！你能濯清漣而不妖、出淤泥而不染。\n那麼──蓮『出淤泥而不染』，最能比喻君子的哪種品格？」'; elHint.textContent=''; elOpts.innerHTML='';
+  const q={o:['身處汙濁環境，仍能潔身自好、不同流合汙','遠離塵世，歸隱山林之中','汲汲營營，追逐榮華富貴','多愁善感，觸景即生悲情'],a:0,e:'蓮生於淤泥而潔淨自持，正喻君子處濁世而不染其汙——此即周敦頤獨愛蓮之由。'};
+  const shown=shuffleQuestion(q);
+  let done=false; shown.options.forEach((option,idx)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=String.fromCharCode(65+idx)+'. '+option.text;
+    b.onclick=()=>{ if(done)return; done=true; [...elOpts.children].forEach(c=>c.setAttribute('disabled','')); if(idx===shown.answer){b.classList.add('correct');sOk();score+=30;} else {b.classList.add('wrong');elOpts.children[shown.answer].classList.add('correct');sNo();if(!loseHealth()){elHint.textContent=q.e+'　（體力 -1）';showNext('力竭倒下',showGameOver);return;}}
+      elHint.textContent=q.e+'　（雅興值 +'+(idx===shown.answer?30:0)+'）'; lotusDone=true; updateHUD(); showNext('參透蓮心',endGame); }; elOpts.appendChild(b); }); }
+
+/* ---------- 過關煙火 ---------- */
+const fireworks=[];
+function burstFirework(x,y,color,size=1){
+  for(let i=0;i<48*size;i++){ const a=Math.random()*Math.PI*2,sp=(2.2+Math.random()*5.2)*Math.sqrt(size);
+    fireworks.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:48+Math.random()*24,max:72,color}); }
+  sFirework();
+}
+function startFireworks(color='#ffe071'){
+  burstFirework(VW*.28,VH*.25,color);
+  setTimeout(()=>burstFirework(VW*.72,VH*.2,shade(color,35)),280);
+  setTimeout(()=>burstFirework(VW*.5,VH*.34,'#ffffff'),570);
+}
+function startGrandFireworks(){
+  const colors=['#ffe071','#ff675f','#62d8ff','#89f08a','#e889ff','#ff9b45'];
+  for(let i=0;i<12;i++)setTimeout(()=>burstFirework(VW*(.12+Math.random()*.76),VH*(.1+Math.random()*.45),colors[i%colors.length],i%3===0?2:1),i*260);
+}
+function updateFireworks(){
+  for(const p of fireworks){ p.x+=p.vx;p.y+=p.vy;p.vx*=.985;p.vy=p.vy*.985+.075;p.life--; }
+  for(let i=fireworks.length-1;i>=0;i--)if(fireworks[i].life<=0)fireworks.splice(i,1);
+}
+function drawFireworks(){
+  ctx.save(); ctx.globalCompositeOperation='lighter';
+  for(const p of fireworks){ ctx.globalAlpha=Math.min(1,p.life/18);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,2.2,0,Math.PI*2);ctx.fill(); }
+  ctx.restore();
+}
+
+/* ---------- 評等／HUD ---------- */
+function rankOf(){
+  if(lotusDone||score>=220)return '蓮心宗師';
+  if(score>=160)return '一代少俠';
+  if(score>=100)return '行俠江湖';
+  if(score>=50)return '初窺武學';
+  return '初入江湖';
+}
+function updateHUD(){
+  document.getElementById('hScore').textContent=score;
+  document.getElementById('hToken').textContent=tokens;
+  document.getElementById('hRank').textContent=rankOf();
+  document.getElementById('hHealth').textContent='♥'.repeat(health)+'♡'.repeat(MAX_HEALTH-health);
+  document.getElementById('tokenIcons').innerHTML=TOKEN_MARKS.map(id=>
+    '<span class="token-icon'+(cleared[id]?' got':'')+'" title="'+SECTS[id].token+'"><img src="assets/tokens/'+id+'.png" alt="'+SECTS[id].token+'"></span>'
+  ).join('');
+  const railToken=id=>'<span class="rail-token'+(cleared[id]?' got':'')+'" title="'+SECTS[id].token+'"><img src="assets/tokens/'+id+'.png" alt="'+SECTS[id].token+'"></span>';
+  document.getElementById('leftTokenRail').innerHTML=TOKEN_MARKS.slice(0,8).map(railToken).join('');
+  document.getElementById('rightTokenRail').innerHTML=TOKEN_MARKS.slice(8).map(railToken).join('');
+}
+
+/* ---------- 開場／結局 ---------- */
+const card=document.getElementById('card'),cardInner=document.getElementById('cardInner');
+const introVideo=document.getElementById('introVideo'), openingVideo=document.getElementById('openingVideo'), enterIntro=document.getElementById('enterIntro');
+function showEnterIntro(text='進入遊戲解說'){ enterIntro.textContent=text; enterIntro.classList.add('show'); }
+function startOpeningVideo(){ enterIntro.classList.remove('show'); openingVideo.muted=false; const p=openingVideo.play(); if(p&&p.catch)p.catch(()=>showEnterIntro('播放開場影片')); }
+openingVideo.addEventListener('ended',()=>showEnterIntro('進入遊戲解說'));
+openingVideo.addEventListener('error',()=>showEnterIntro('進入遊戲解說'));
+enterIntro.onclick=()=>{
+  if(!openingVideo.ended){ startOpeningVideo(); return; }
+  introVideo.classList.add('hide'); showOpening(); playBgm(); const a=actx(); if(a&&a.resume)a.resume();
+};
+startOpeningVideo();
+function showOpening(){ mode='card'; card.classList.add('show'); cardInner.innerHTML=
+  '<h1>蓮說群芳傳</h1><div class="sub">愛 蓮 說 闖 關</div>'+
+  '<p>晉陶淵明獨愛菊，自李唐來世人盛愛牡丹，<br>而周敦頤獨愛蓮。</p>'+
+  '<p>群芳各據一方——有問答、有切磋、有雅趣。<br>你將遊歷諸派、過其考驗，終至湖心蓮花淨臺，<br>參透「花之君子」之德。</p>'+
+  '<p style="color:#c9b98f;">手機、平板、電腦皆可遊玩<br>電腦：WASD／方向鍵移動，空白鍵查探<br>手機與平板：左下方向鍵移動，右下「查探」互動</p>'+
+  '<button id="startBtn">入　江　湖</button>';
+  card.classList.remove('celebrate');
+  document.getElementById('startBtn').onclick=()=>{ card.classList.remove('show'); mode='world'; playBgm(); const a=actx(); if(a&&a.resume)a.resume(); }; }
+function endGame(){ closePanel(); mode='card'; card.classList.add('show','celebrate'); sWin(); startGrandFireworks(); cardInner.innerHTML=
+  '<h1>蓮，花之君子者也</h1><div class="sub">終　局</div>'+
+  '<p class="verse">予獨愛蓮之出淤泥而不染，<br>濯清漣而不妖，中通外直，<br>不蔓不枝，香遠益清，<br>亭亭靜植，可遠觀而不可褻玩焉。</p>'+
+  '<p>「噫！菊之愛，陶後鮮有聞；<br>蓮之愛，同予者何人？」</p>'+
+  '<p style="color:#bfeede;">最終雅興值 '+score+'　·　信物 '+tokens+' 枚</p>'+
+  '<div class="seal">品階・'+rankOf()+'</div><button id="againBtn">再遊一回</button>';
+  document.getElementById('againBtn').onclick=()=>location.reload(); }
+
+/* ---------- 主迴圈 ---------- */
+function update(){ if(mode==='world'){ const[dx,dy]=inputVec(); if(dx||dy){
+    player.moving=true;
+    if(dx<0)player.dir='left'; else if(dx>0)player.dir='right'; else if(dy<0)player.dir='up'; else if(dy>0)player.dir='down';
+    const ox=player.x,oy=player.y,nx=player.x+dx*player.speed, ny=player.y+dy*player.speed; if(!blocked(nx,player.y))player.x=nx; if(!blocked(player.x,ny))player.y=ny;
+    travelSinceChest+=Math.hypot(player.x-ox,player.y-oy); maybeSpawnChest();
+    if(++player.animT>7){player.animT=0;player.frame^=1;} } else{player.frame=0;player.moving=false;} updateCam(); }
+  else if(mode==='mud')updateMud(); else if(mode==='catch')updateCatch(); updateChest(); updateFireworks(); }
+function render(){
+  if(mode==='mud'||mode==='mudfail'){ drawMud(); return; }
+  if(mode==='catch'||mode==='catchfail'){ drawCatch(); return; }
+  if(mode==='battle'){ drawBattle(); return; }
+  if(drawWorldBackground()){
+    if(mode==='world')drawSectLabels();
+    drawChest();
+    drawPlayer();
+    if(mode==='world')drawNearbySectPrompt();
+    drawFireworks();
+    return;
+  }
+  const gx0=(cam.x/TILE)|0,gy0=(cam.y/TILE)|0;
+  for(let y=gy0;y<=gy0+VH/TILE+1;y++)for(let x=gx0;x<=gx0+VW/TILE+1;x++){ if(x<0||y<0||x>=MAP_W||y>=MAP_H)continue;
+    const sx=x*TILE-cam.x, sy=y*TILE-cam.y; drawTile(terr[y][x],sx,sy,x,y); drawDecor(terr[y][x],sx,sy,x,y); }
+  drawMountains();
+  drawChest();
+  const items=[]; BUILDINGS.forEach(b=>items.push({y:b.ty+2,k:'b',r:b})); trees.forEach(t=>items.push({y:t.y,k:'t',r:t}));
+  items.push({y:wallSpec.y,k:'w'}); items.sort((a,b)=>a.y-b.y);
+  let drew=false; const pgy=((player.y+player.h)/TILE)|0;
+  items.forEach(it=>{ if(!drew&&it.y>pgy){drawPlayer();drew=true;} if(it.k==='b')drawBuilding(it.r); else if(it.k==='w')drawWall(); else drawTree(it.r.x*TILE-cam.x,it.r.y*TILE-cam.y,it.r.type); });
+  if(!drew)drawPlayer();
+  drawFireworks();
+}
+function drawWorldBackground(){
+  if(!worldBgReady||worldBgFailed)return false;
+  const sx=cam.x/WORLD_W*worldBg.naturalWidth;
+  const sy=cam.y/WORLD_H*worldBg.naturalHeight;
+  const sw=VW/WORLD_W*worldBg.naturalWidth;
+  const sh=VH/WORLD_H*worldBg.naturalHeight;
+  ctx.save();
+  ctx.imageSmoothingEnabled=true;
+  ctx.drawImage(worldBg,sx,sy,sw,sh,0,0,VW,VH);
+  ctx.restore();
+  ctx.imageSmoothingEnabled=false;
+  return true;
+}
+function drawSectLabels(){
+  const near=nearestSect();
+  for(const b of BUILDINGS){
+    const S=SECTS[b.id], a=sectAnchor(b);
+    const x=a.x-cam.x, y=a.y-cam.y-(S.great?66:52)+(b.labelDy||0);
+    if(x<-120||x>VW+120||y<-80||y>VH+80)continue;
+    const major=S.great, active=near===b.id;
+    ctx.save();
+    ctx.font=(major?'bold 34px ':'bold 30px ')+'"Noto Sans TC","Microsoft JhengHei",sans-serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    const tw=ctx.measureText(S.name).width+(major?40:36), th=major?52:48;
+    const done=cleared[b.id];
+    ctx.fillStyle=done?'rgba(28,28,28,.62)':(active?'rgba(33,28,18,.88)':'rgba(20,18,15,.72)');
+    ctx.strokeStyle=done?'rgba(190,190,190,.5)':(active?shade(S.accent,45):'rgba(239,230,208,.5)');
+    ctx.lineWidth=active?3:2;
+    roundRect(x-tw/2,y-th/2,tw,th,5,true,true);
+    ctx.fillStyle=done?'rgba(205,205,205,.72)':shade(S.accent,major?62:48);
+    ctx.fillText(S.name,x,y);
+    if(active){
+      const prompt='查探',pw=ctx.measureText(prompt).width+28,py=y-th/2-27;
+      ctx.fillStyle='rgba(20,18,15,.88)';ctx.strokeStyle=shade(S.accent,48);ctx.lineWidth=2;
+      roundRect(x-pw/2,py-16,pw,32,8,true,true);
+      ctx.fillStyle='#efe6d0';ctx.font='bold 15px "Noto Sans TC","Microsoft JhengHei",sans-serif';ctx.fillText(prompt,x,py);
+    }
+    ctx.restore();
+  }
+}
+function drawNearbySectPrompt(){
+  const nearChest=chest&&Math.hypot(player.x+player.w/2-chest.x,player.y+player.h/2-chest.y)<110;
+  if(!nearChest&&!worldNotice)return;
+  const S={accent:'#c79a3a'}, text=nearChest?'打開寶箱':worldNotice;
+  ctx.save();
+  ctx.font='bold 14px "Noto Sans TC","Microsoft JhengHei",sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  const tw=ctx.measureText(text).width+28, x=VW/2, y=VH-74;
+  ctx.fillStyle='rgba(20,18,15,.82)'; ctx.strokeStyle=shade(S.accent,42); ctx.lineWidth=2;
+  roundRect(x-tw/2,y-17,tw,34,8,true,true);
+  ctx.fillStyle='#efe6d0'; ctx.fillText(text,x,y);
+  ctx.restore();
+}
+const MAX_CHESTS=3,CHEST_LIFETIME=15000;
+let chest=null,chestsSpawned=0,travelSinceChest=0,nextChestDistance=1600+Math.random()*900,worldNotice='';
+function maybeSpawnChest(){
+  if(chest||chestsSpawned>=MAX_CHESTS||travelSinceChest<nextChestDistance)return;
+  for(let i=0;i<24;i++){
+    const a=Math.random()*Math.PI*2,d=170+Math.random()*260;
+    const x=player.x+player.w/2+Math.cos(a)*d,y=player.y+player.h/2+Math.sin(a)*d;
+    if(x<40||y<180||x>WORLD_W-40||y>WORLD_H-40||blocked(x-player.w/2,y-player.h/2))continue;
+    chest={x,y,expiresAt:Date.now()+CHEST_LIFETIME};chestsSpawned++;travelSinceChest=0;nextChestDistance=1800+Math.random()*1000;return;
+  }
+}
+function updateChest(){
+  if(chest&&Date.now()>=chest.expiresAt){chest=null;travelSinceChest=0;}
+}
+function openChest(){
+  const gained=Math.min(MAX_HEALTH-health,1+(Math.random()<.35?1:0));
+  health+=gained;chest=null;travelSinceChest=0;updateHUD();sWin();
+  worldNotice=gained?'寶箱獲得 '+gained+' 顆愛心':'目前體力已滿';
+  setTimeout(()=>{worldNotice='';},1800);
+}
+function drawChest(){
+  if(!chest)return;
+  const x=chest.x-cam.x,y=chest.y-cam.y;
+  if(x<-50||y<-50||x>VW+50||y>VH+50)return;
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(x,y+24,40,10,0,0,7);ctx.fill();
+  px(x-34,y-12,68,38,'#7a4522');px(x-34,y-21,68,17,'#a96831');px(x-29,y-26,58,11,'#bd7b3c');
+  px(x-6,y-21,12,47,'#d2a445');px(x-11,y-1,22,18,'#e0bb58');px(x-4,y+4,8,10,'#604018');
+  ctx.restore();
+}
+function roundRect(x,y,w,h,r,fill,stroke){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  if(fill)ctx.fill(); if(stroke)ctx.stroke();
+}
+let resizeTimer;
+addEventListener('resize',()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(()=>{ fitCanvasToStage(); updateCam(); },80); });
+function loop(){ update(); render(); requestAnimationFrame(loop); }
+updateHUD(); loop();
+</script>
+</body>
+</html>
