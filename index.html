@@ -37,34 +37,40 @@
   #introVideo{position:fixed;inset:0;z-index:20;background:#050403;display:flex;align-items:center;justify-content:center;}
   #introVideo.hide{display:none;}
   #introVideo video{width:100%;height:100%;object-fit:contain;background:#050403;}
+  #skipIntro{position:absolute;right:24px;top:22px;background:rgba(24,22,19,.84);color:var(--paper);
+    border:2px solid var(--line);border-radius:7px;padding:10px 18px;font-size:16px;font-weight:700;
+    font-family:inherit;letter-spacing:1px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.35);}
   #enterIntro{position:absolute;left:50%;bottom:8vh;transform:translateX(-50%);display:none;
     background:var(--gold);color:#241c08;border:none;border-radius:7px;padding:13px 32px;
     font-size:17px;font-weight:700;font-family:inherit;letter-spacing:2px;cursor:pointer;
     box-shadow:0 8px 24px rgba(0,0,0,.45);}
   #enterIntro.show{display:block;}
   #panel{position:absolute;left:10px;right:10px;bottom:8px;background:rgba(22,20,17,.97);
-    border:2px solid var(--line);border-radius:7px;padding:9px;display:none;box-shadow:0 -4px 24px var(--shadow);}
-  #panel.show{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px;}
-  #panel.battle-panel{bottom:6px;}
+    border:2px solid var(--line);border-radius:7px;padding:12px;display:none;box-shadow:0 -4px 24px var(--shadow);}
+  #panel.show{display:grid;grid-template-columns:128px minmax(0,1fr);gap:12px;}
+  #panel.battle-panel{left:50%;right:auto;bottom:12px;width:min(720px,calc(100% - 36px));max-height:32dvh;
+    padding:10px 12px;overflow:auto;transform:translateX(-50%);}
   #panel.battle-panel.show{grid-template-columns:minmax(0,1fr);}
   #panel.battle-panel #npcPortrait{display:none;}
+  #panel.battle-panel #dialogContent{padding-right:128px;}
   #panel.battle-panel #opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
-  #npcPortrait{display:block;width:118px;height:156px;align-self:start;object-fit:cover;object-position:center 28%;
+  #panel.battle-panel #next{position:absolute;right:12px;bottom:10px;margin:0;z-index:2;}
+  #npcPortrait{display:block;width:128px;height:170px;align-self:start;object-fit:cover;object-position:center 28%;
     border:2px solid var(--gold);border-radius:6px;background:#17130e;box-shadow:0 4px 14px rgba(0,0,0,.45);}
   #dialogContent{min-width:0;}
-  #speaker{color:var(--gold);font-weight:700;font-size:14px;margin-bottom:6px;letter-spacing:1px;}
-  #speaker .plant{color:#7fd0a6;font-weight:500;font-size:12px;margin-left:6px;}
-  #say{font-size:14px;line-height:1.55;white-space:pre-wrap;margin-bottom:7px;}
-  #opts{display:flex;flex-direction:column;gap:5px;}
+  #speaker{color:var(--gold);font-weight:700;font-size:16px;margin-bottom:7px;letter-spacing:1px;}
+  #speaker .plant{color:#7fd0a6;font-weight:500;font-size:14px;margin-left:6px;}
+  #say{font-size:16px;line-height:1.58;white-space:pre-wrap;margin-bottom:8px;}
+  #opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
   .opt{text-align:left;background:var(--paper);color:var(--ink);border:2px solid var(--line);border-radius:5px;
-    padding:7px 10px;font-size:13px;font-family:inherit;cursor:pointer;transition:transform .05s,background .15s;}
+    padding:8px 10px;font-size:15px;font-family:inherit;cursor:pointer;transition:transform .05s,background .15s;}
   .opt:hover{background:#fff;} .opt:active{transform:translateY(1px);}
   .opt.correct{background:#bfe3c5;border-color:#2f7a45;} .opt.wrong{background:#e8b9b0;border-color:#a3402f;}
   .opt[disabled]{cursor:default;opacity:.9;}
-  #next{margin-top:7px;background:var(--gold);color:#241c08;border:none;border-radius:5px;padding:7px 16px;
-    font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-block;visibility:hidden;}
+  #next{margin-top:8px;background:var(--gold);color:#241c08;border:none;border-radius:5px;padding:8px 18px;
+    font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:inline-block;visibility:hidden;}
   #next.show{visibility:visible;}
-  .hint{font-size:12.5px;color:#cdbd92;margin-top:8px;line-height:1.6;}
+  .hint{font-size:14px;color:#cdbd92;margin-top:8px;line-height:1.6;}
   #pad{position:absolute;left:12px;bottom:16px;width:138px;height:138px;display:none;touch-action:none;}
   #pad.show{display:block;}
   .dbtn{position:absolute;width:46px;height:46px;background:rgba(239,230,208,.2);border:2px solid rgba(239,230,208,.5);
@@ -86,12 +92,11 @@
     font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;}
   .seal{display:inline-block;margin-top:18px;padding:6px 12px;border:2px solid var(--crimson);color:#e08a76;font-size:12px;letter-spacing:2px;border-radius:3px;}
   @media (min-width:1180px){
-    #panel{left:50%;right:auto;bottom:12px;top:auto;width:min(860px,calc(100% - 36px));overflow:hidden;
+    #panel{left:50%;right:auto;bottom:12px;top:auto;width:min(900px,calc(100% - 36px));overflow:hidden;
       transform:translateX(-50%);box-shadow:0 -4px 24px var(--shadow);}
-    #panel.battle-panel{width:min(760px,calc(100% - 36px));}
-    #opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));}
-    #say{font-size:14px;}
-    .opt{font-size:13px;padding:7px 10px;}
+    #panel.battle-panel{width:min(720px,calc(100% - 36px));overflow:auto;}
+    #say{font-size:16px;}
+    .opt{font-size:15px;padding:8px 10px;}
     #pad{bottom:20px;}
     #act{right:22px;bottom:30px;}
   }
@@ -102,15 +107,23 @@
     #tokenIcons{max-width:210px;}
     .token-icon{width:20px;height:20px;}
     .token-icon img{width:18px;height:18px;}
+    #skipIntro{right:14px;top:14px;font-size:14px;padding:9px 14px;}
     #enterIntro{bottom:7vh;font-size:15px;padding:11px 24px;}
-    #panel.show{grid-template-columns:92px minmax(0,1fr);gap:9px;}
-    #npcPortrait{width:92px;height:123px;}
-    #say{font-size:13px;line-height:1.55;}
+    #panel{padding:10px;}
+    #panel.show{grid-template-columns:96px minmax(0,1fr);gap:9px;}
+    #panel.battle-panel{width:calc(100% - 24px);max-height:34dvh;}
+    #panel.battle-panel #dialogContent{padding-right:106px;}
+    #npcPortrait{width:96px;height:128px;}
+    #speaker{font-size:15px;}
+    #speaker .plant{font-size:12.5px;}
+    #say{font-size:15px;line-height:1.55;}
     #card{padding:14px;}
     #cardInner{padding:6px 8px;}
     #card h1{font-size:24px;}
     #card p{font-size:15px;line-height:1.65;}
-    .opt{font-size:12px;padding:7px 9px;}
+    .opt{font-size:13.5px;padding:7px 8px;}
+    #next{font-size:14px;padding:7px 16px;}
+    .hint{font-size:12.5px;}
   }
   @media (min-width:761px){#tokenIcons{display:none;}}
 </style>
@@ -118,6 +131,7 @@
 <body>
 <div id="introVideo">
   <video id="openingVideo" src="蓮說群芳傳開頭.mp4" autoplay playsinline controls></video>
+  <button id="skipIntro">跳過</button>
   <button id="enterIntro">播放開場影片</button>
 </div>
 <audio id="bgm" src="俠影江湖背景音.mp3" loop preload="auto"></audio>
@@ -168,6 +182,7 @@ const bgm=document.getElementById('bgm'), muteBtn=document.getElementById('mute'
 let AC=null, muted=false;
 function actx(){ if(!AC){ try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){} } return AC; }
 function playBgm(){ if(muted)return; bgm.volume=.42; bgm.play().catch(()=>{}); }
+function pauseBgm(){ bgm.pause(); }
 function beep(f,d,t){ if(muted)return; const a=actx(); if(!a)return; const o=a.createOscillator(),g=a.createGain();
   o.type=t||'square'; o.frequency.value=f; o.connect(g); g.connect(a.destination); const n=a.currentTime;
   g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(.16,n+.01); g.gain.exponentialRampToValueAtTime(.0001,n+d);
@@ -587,7 +602,7 @@ const panel=document.getElementById('panel'),elSp=document.getElementById('speak
 let flow=null;
 function openPanel(id){ if(id){ elPortrait.src='assets/portraits/'+id+'.webp'; elPortrait.alt=(id==='academy'?'山長':SECTS[id].npc)+'關主圖片'; } panel.classList.add('show'); }
 function closePanel(){ panel.classList.remove('show','battle-panel'); mode='world'; elOpts.innerHTML=''; elHint.textContent=''; elNext.classList.remove('show'); flow=null; }
-function showNext(t,fn){ elNext.textContent=t; elNext.classList.add('show'); flow={onNext:fn}; }
+function showNext(t,fn){ panel.scrollTop=0; elNext.textContent=t; elNext.classList.add('show'); flow={onNext:fn}; }
 elNext.onclick=()=>{ if(flow&&flow.onNext)flow.onNext(); };
 function shuffleQuestion(q){
   const options=q.o.map((text,original)=>({text,original}));
@@ -850,15 +865,23 @@ function updateHUD(){
 
 /* ---------- 開場／結局 ---------- */
 const card=document.getElementById('card'),cardInner=document.getElementById('cardInner');
-const introVideo=document.getElementById('introVideo'), openingVideo=document.getElementById('openingVideo'), enterIntro=document.getElementById('enterIntro');
+const introVideo=document.getElementById('introVideo'), openingVideo=document.getElementById('openingVideo'), enterIntro=document.getElementById('enterIntro'), skipIntro=document.getElementById('skipIntro');
 function showEnterIntro(text='進入遊戲解說'){ enterIntro.textContent=text; enterIntro.classList.add('show'); }
-function startOpeningVideo(){ enterIntro.classList.remove('show'); openingVideo.muted=false; const p=openingVideo.play(); if(p&&p.catch)p.catch(()=>showEnterIntro('播放開場影片')); }
+function enterAfterIntro(){
+  openingVideo.pause();
+  introVideo.classList.add('hide');
+  showOpening();
+  playBgm();
+  const a=actx(); if(a&&a.resume)a.resume();
+}
+function startOpeningVideo(){ enterIntro.classList.remove('show'); openingVideo.muted=false; openingVideo.volume=1; const p=openingVideo.play(); if(p&&p.catch)p.catch(()=>showEnterIntro('播放開場影片')); }
 openingVideo.addEventListener('ended',()=>showEnterIntro('進入遊戲解說'));
 openingVideo.addEventListener('error',()=>showEnterIntro('進入遊戲解說'));
 enterIntro.onclick=()=>{
   if(!openingVideo.ended){ startOpeningVideo(); return; }
-  introVideo.classList.add('hide'); showOpening(); playBgm(); const a=actx(); if(a&&a.resume)a.resume();
+  enterAfterIntro();
 };
+skipIntro.onclick=enterAfterIntro;
 startOpeningVideo();
 function showOpening(){ mode='card'; card.classList.add('show'); cardInner.innerHTML=
   '<h1>蓮說群芳傳</h1><div class="sub">愛 蓮 說 闖 關</div>'+
@@ -868,7 +891,7 @@ function showOpening(){ mode='card'; card.classList.add('show'); cardInner.inner
   '<button id="startBtn">入　江　湖</button>';
   card.classList.remove('celebrate');
   document.getElementById('startBtn').onclick=()=>{ card.classList.remove('show'); mode='world'; playBgm(); const a=actx(); if(a&&a.resume)a.resume(); }; }
-function endGame(){ closePanel(); mode='card'; card.classList.add('show','celebrate'); sWin(); startGrandFireworks(); cardInner.innerHTML=
+function endGame(){ closePanel(); mode='card'; card.classList.add('show','celebrate'); pauseBgm(); sWin(); startGrandFireworks(); cardInner.innerHTML=
   '<h1>蓮，花之君子者也</h1><div class="sub">終　局</div>'+
   '<p class="verse">予獨愛蓮之出淤泥而不染，<br>濯清漣而不妖，中通外直，<br>不蔓不枝，香遠益清，<br>亭亭靜植，可遠觀而不可褻玩焉。</p>'+
   '<p>「噫！菊之愛，陶後鮮有聞；<br>蓮之愛，同予者何人？」</p>'+
