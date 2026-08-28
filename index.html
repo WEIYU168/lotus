@@ -60,6 +60,7 @@
   #panel.battle-panel #next{position:absolute;right:12px;bottom:10px;margin:0;z-index:2;}
   #npcPortrait{display:block;width:128px;height:170px;align-self:start;object-fit:cover;object-position:center 28%;
     border:2px solid var(--gold);border-radius:6px;background:#17130e;box-shadow:0 4px 14px rgba(0,0,0,.45);}
+  #npcPortrait.loading{visibility:hidden;}
   #dialogContent{min-width:0;}
   #speaker{color:var(--gold);font-weight:700;font-size:16px;margin-bottom:7px;letter-spacing:1px;}
   #speaker .plant{color:#7fd0a6;font-weight:500;font-size:14px;margin-left:6px;}
@@ -90,7 +91,7 @@
   #card h1{font-size:clamp(24px,3vw,38px);color:var(--gold);letter-spacing:5px;margin:0 0 4px;}
   #card .sub{color:#7fd0a6;letter-spacing:7px;font-size:clamp(12px,1.3vw,16px);margin-bottom:16px;}
   #card p{font-size:clamp(14px,1.35vw,18px);line-height:1.75;max-width:720px;color:var(--paper);margin:7px auto;}
-  #card .verse{font-family:"Noto Serif TC",serif;color:#d8c79a;font-size:15px;line-height:2;margin:14px 0;}
+  #card .verse{font-family:"Noto Serif TC",serif;color:#d8c79a;font-size:15px;line-height:2;margin:14px auto;text-align:center;}
   #card button{margin-top:18px;background:var(--gold);color:#241c08;border:none;border-radius:6px;padding:11px 28px;
     font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;}
   .seal{display:inline-block;margin-top:18px;padding:6px 12px;border:2px solid var(--crimson);color:#e08a76;font-size:12px;letter-spacing:2px;border-radius:3px;}
@@ -212,7 +213,7 @@ const SECTS={
     intro:'灞橋之畔，柳絲拂水。一位執卷女子臨風而立。\n「年年柳色，灞陵傷別──郎君可知折柳所寄何情？」',
     qs:[{tier:'初階',q:'古人臨別「折柳」相贈，主要表達什麼情感？',o:['送別、留戀之情','祝賀高升','祈求平安','思鄉之苦'],a:0,e:'「柳」與「留」諧音，折柳寄寓挽留難捨之意。'},
         {tier:'中階',q:'謝道韞以「未若柳絮因風起」詠雪，後世因而用哪個詞讚美才女？',o:['蕙質蘭心','詠絮之才','錦心繡口','掃眉才子'],a:1,e:'「詠絮之才」即由謝道韞詠雪典故而來。'},
-        {tier:'高階',q:'下列哪個成語與「柳」無關？',o:['柳暗花明','尋花問柳','望梅止渴','霸陵折柳'],a:2,e:'「望梅止渴」出自曹操行軍以梅止渴，與柳無涉。'}]},
+        {tier:'高階',q:'下列哪個成語與「柳」無關？',o:['柳暗花明','尋花問柳','望梅止渴','灞陵折柳'],a:2,e:'「望梅止渴」出自曹操行軍以梅止渴，與柳無涉。'}]},
   apricot:{name:'杏花村',plant:'杏花',accent:'#e2a04a',npc:'杏壇老圃',token:'杏實',kind:'quiz',
     intro:'杏花村頭，紅杏出牆，酒旗招展。一位荷鋤老圃笑臉相迎。\n「清明時節雨紛紛──郎君可知杏花繫著哪兩種人？」',
     qs:[{tier:'初階',q:'杏花常用以象徵哪兩種行業？',o:['商人與農夫','漁夫與樵夫','詩人與畫家','教師與醫師'],a:3,e:'「杏壇」喻教育界、「杏林」喻醫界。'},
@@ -227,7 +228,7 @@ const SECTS={
   // 接花小遊戲
   plum:{name:'梅花塢',plant:'梅花',accent:'#cf6f8f',npc:'和靖先生',token:'梅蕊',kind:'catch',
     intro:'梅花塢中，疏影橫斜，暗香浮動。和靖先生攜鶴而來。\n「踏雪尋梅，貴在用心。且接住飄落的梅花，莫教枯枝混入。」',
-    bonus:{tier:'高階',q:'林逋〈山園小梅〉「疏影橫斜水清淺，暗香浮動月黃昏」描寫的是哪一種花？',o:['桃花','梅花','杏花','牡丹'],a:1,e:'「疏影」「暗香」是詠梅名句，寫出梅花清幽高潔之姿。'}},
+    bonus:{tier:'高階',q:'林逋〈山園小梅〉「疏影橫斜水清淺，暗香浮動月黃昏」描寫的是哪一種花？',o:['桃花','梅花','杏花','牡丹'],a:1,e:'「疏影」、「暗香」是詠梅名句，寫出梅花清幽高潔之姿。'}},
   // 終局
   lotus:{name:'蓮花淨臺',plant:'蓮',accent:'#e8d6e8',npc:'濂溪先生',kind:'finale',great:true,
     locked:'淨臺臨水，蓮葉田田。濂溪先生負手而立。\n「君欲識蓮之德，須先遍訪群芳、心有所養。\n（請先完成所有門派、取得 15 枚信物，再回此處。）」',
@@ -237,7 +238,7 @@ const SECTS={
     intro:'東籬之下，黃花滿畦，南山在望。五柳先生把酒臨風。\n「結廬在人境，而無車馬喧。後生，可願與我以詩酒論高下？」',
     qs:[{tier:'初階',q:'菊花在傳統文化中，最常象徵下列何者？',o:['富貴顯達','離情別緒','隱逸高潔','堅貞愛情'],a:2,e:'菊為花之隱逸者，常喻避世高士。'},
         {tier:'中階',q:'「採菊東籬下，悠然見南山」出自誰的〈飲酒〉詩？',o:['李白','王維','蘇軾','陶淵明'],a:3,e:'陶淵明〈飲酒〉，是菊與隱逸最著名的連結。'},
-        {tier:'高階',q:'〈愛蓮說〉：「菊，花之□□者也。」缺空為？',o:['隱逸','富貴','君子','高潔'],a:0,e:'菊—隱逸者、牡丹—富貴者、蓮—君子者。'}]},
+        {tier:'高階',q:'〈愛蓮說〉：「菊，花之□□者也。」缺空為？',o:['隱逸','富貴','君子','高潔'],a:0,e:'答對！　菊——隱逸者、牡丹——富貴者、蓮——君子者。'}]},
   peony:{name:'洛陽園',plant:'牡丹',accent:'#c5483f',great:true,npc:'洛陽花王',token:'丹瓣',kind:'battle',move:'國色天香掌',
     intro:'洛陽園中，牡丹盛放，金碧輝煌。花王衣著華貴，傲然相迎。\n「世人皆愛我牡丹之富貴。後生，可有膽與我較量一番？」',
     qs:[{tier:'初階',q:'牡丹素有「花中之□」之美稱？',o:['君子','王','隱士','仙'],a:1,e:'牡丹雍容華貴，故稱花中之王、富貴花。'},
@@ -247,7 +248,7 @@ const SECTS={
     intro:'後凋園中，蒼松挺立，凜然有節。一位鶴髮老者按劍而立。\n「歲寒，然後知松柏。後生，敢來試我這勁節之招否？」',
     qs:[{tier:'初階',q:'松柏最常象徵下列何種精神？',o:['堅忍不拔、長青不凋','逍遙隱逸','離情依依','雍容富貴'],a:0,e:'松柏耐寒長青，喻堅貞不屈。'},
         {tier:'中階',q:'「歲寒，然後知松柏之□□也」缺空為？',o:['先榮','後凋','長青','獨秀'],a:1,e:'語出《論語》，喻人於患難見節操。'},
-        {tier:'高階',q:'松、竹、梅因耐寒而合稱為？',o:['花中四君子','三清','歲寒三友','三益友'],a:2,e:'松、竹、梅—歲寒三友。'}]},
+        {tier:'高階',q:'松、竹、梅因耐寒而合稱為？',o:['花中四君子','三清','歲寒三友','三益友'],a:2,e:'松、竹、梅──歲寒三友。'}]},
   // 答題
   peach:{name:'桃花源',plant:'桃花',accent:'#e88aa0',npc:'武陵漁人',token:'桃符',kind:'quiz',
     intro:'忽逢桃花林，夾岸數百步，落英繽紛。一位漁人自洞口走出。\n「客從何來？且答我幾問，便引你入此桃源。」',
@@ -258,11 +259,11 @@ const SECTS={
     intro:'空谷之中，幽蘭獨芳，清氣襲人。一位隱者撫琴而坐。\n「蘭生幽谷，不以無人而不芳。請答我數問。」',
     qs:[{tier:'初階',q:'蘭花最常用以象徵君子的什麼？',o:['權勢顯赫','多情善感','品德高潔','勤勉刻苦'],a:2,e:'蘭喻君子幽芳自守、品格高潔。'},
         {tier:'中階',q:'「空谷幽蘭」比喻哪一種人？',o:['才華外露好出風頭','貪圖名利之徒','孤僻怪異之人','身處幽僻仍保高潔'],a:3,e:'喻人品高雅，雖處僻靜而芬芳自守。'},
-        {tier:'高階',q:'蘭與梅、竹、菊合稱為？',o:['花中四君子','歲寒三友','四時佳卉','三益之友'],a:0,e:'梅、蘭、竹、菊—花中四君子。'}]},
+        {tier:'高階',q:'蘭與梅、竹、菊合稱為？',o:['花中四君子','歲寒三友','四時佳卉','三益之友'],a:0,e:'梅、蘭、竹、菊──花中四君子。'}]},
   maple:{name:'楓橋',plant:'楓葉',accent:'#c0512f',npc:'寒山客',token:'丹楓',kind:'quiz',
     intro:'楓橋之畔，霜葉如火，鐘聲隱隱。一位夜泊旅人臨江而立。\n「月落烏啼霜滿天──客可知此景出自何處？」',
     qs:[{tier:'初階',q:'楓葉最常渲染哪個季節的情調？',o:['春日的明媚','秋日的蕭瑟','夏日的繁盛','冬日的酷寒'],a:1,e:'霜葉轉紅，是秋意與愁緒的象徵。'},
-        {tier:'中階',q:'「月落烏啼霜滿天，江楓漁火對愁眠」出自張繼哪首詩？',o:['靜夜思','楓橋','楓橋夜泊','夜雨寄北'],a:2,e:'張繼〈楓橋夜泊〉。'},
+        {tier:'中階',q:'「月落烏啼霜滿天，江楓漁火對愁眠」出自張繼哪首詩？',o:['〈靜夜思〉','〈楓橋〉','〈楓橋夜泊〉','〈夜雨寄北〉'],a:2,e:'張繼〈楓橋夜泊〉，為抒發遊子鄉愁的經典詩作。'},
         {tier:'高階',q:'該詩「姑蘇城外」傳來夜半鐘聲的古寺是？',o:['靈隱寺','普陀寺','棲霞寺','寒山寺'],a:3,e:'「姑蘇城外寒山寺，夜半鐘聲到客船」。'}]},
   osmanthus:{name:'月窟桂',plant:'桂花',accent:'#e6c14a',npc:'月窟仙子',token:'桂馥',kind:'quiz',
     intro:'桂影婆娑，香飄十里。一位仙子自月色中緩緩而來。\n「蟾宮一枝桂，可知其中典故？且答我問。」',
@@ -277,7 +278,7 @@ const SECTS={
   paulownia:{name:'梧桐院',plant:'梧桐',accent:'#b98f4a',npc:'深院愁客',token:'桐影',kind:'quiz',
     intro:'深院梧桐，細雨黃昏，點點滴滴。一位愁緒滿懷的詞客憑欄。\n「寂寞梧桐，深院鎖清秋……客可解此情？」',
     qs:[{tier:'初階',q:'「寂寞梧桐，深院鎖清秋」寫出何種情調？',o:['歡欣熱鬧','閒適自得','孤寂清冷的離愁','慷慨激昂'],a:2,e:'李煜〈相見歡〉，以梧桐寫清秋孤寂。'},
-        {tier:'中階',q:'「梧桐更兼細雨，到黃昏、點點滴滴」出自誰之筆？',o:['李煜','蘇軾','李白','李清照'],a:3,e:'李清照〈聲聲慢〉。'},
+        {tier:'中階',q:'「梧桐更兼細雨，到黃昏、點點滴滴」出自誰之筆？',o:['李煜','蘇軾','李白','李清照'],a:3,e:'李清照〈聲聲慢〉，此句為借景抒孤寂之情的典範。'},
         {tier:'高階',q:'相傳哪種祥鳥「非梧桐不棲」？',o:['鳳凰','仙鶴','大鵬','青鳥'],a:0,e:'鳳凰非梧桐不棲，故梧桐亦象徵高潔。'}]},
   sunflower:{name:'向陽圃',plant:'葵花',accent:'#e8b32a',npc:'向陽老農',token:'葵心',kind:'quiz',
     intro:'向陽圃裡，葵花朵朵朝日。一位老農荷鋤含笑。\n「葵藿傾陽，赤心一片。後生，且答我問。」',
@@ -286,7 +287,7 @@ const SECTS={
         {tier:'高階',q:'向日葵的花朵通常朝向哪一方，最容易獲得陽光？',o:['完全背向太陽','固定朝向北方','沒有任何方向性','太陽所在的方向'],a:3,e:'向日葵具有向光性，會朝向光源以獲得較多陽光。'}]},
   phoenix:{name:'鳳凰木',plant:'鳳凰',accent:'#d6452f',npc:'驪歌學長',token:'鳳羽',kind:'quiz',
     intro:'鳳凰木下，火紅如霞，驪歌將起。一位學長負笈而立。\n「六月鳳凰開，又是別離時──學弟，且答我問。」',
-    qs:[{tier:'初階',q:'校園常見的鳳凰花盛開於哪兩個月，常象徵什麼？',o:['六、七月，象徵畢業','三、四月，象徵入學','九、十月，象徵豐收','一、二月，象徵新年'],a:0,e:'鳳凰花於六七月綻放，正是畢業時節。'},
+    qs:[{tier:'初階',q:'校園常見的鳳凰花盛開於哪兩個月，常象徵什麼？',o:['六、七月，象徵畢業','三、四月，象徵入學','九、十月，象徵豐收','一、二月，象徵新年'],a:0,e:'鳳凰花於六、七月綻放，正是畢業時節。'},
         {tier:'中階',q:'鳳凰花火紅燦爛，最常與哪一情景相連？',o:['元宵燈會','驪歌（畢業離別）','端午競渡','中秋賞月'],a:1,e:'鳳凰花開，常伴隨畢業的離情。'},
         {tier:'高階',q:'傳說鳳凰「非梧桐不棲，非竹實不食」，象徵？',o:['貪得無厭','隨遇而安','高潔自守、擇善而棲','勇猛善戰'],a:2,e:'喻品格高潔、有所不為。'}]}
 };
@@ -603,7 +604,19 @@ const panel=document.getElementById('panel'),elSp=document.getElementById('speak
   elOpts=document.getElementById('opts'),elHint=document.getElementById('hint'),elNext=document.getElementById('next'),
   elPortrait=document.getElementById('npcPortrait');
 let flow=null;
-function openPanel(id){ if(id){ elPortrait.src='assets/portraits/'+id+'.webp'; elPortrait.alt=(id==='academy'?'山長':SECTS[id].npc)+'關主圖片'; } panel.classList.add('show'); }
+function openPanel(id){
+  if(id){
+    const src='assets/portraits/'+id+'.webp';
+    elPortrait.alt=(id==='academy'?'山長':SECTS[id].npc)+'關主圖片';
+    if(elPortrait.getAttribute('src')!==src){
+      elPortrait.classList.add('loading');
+      elPortrait.onload=()=>elPortrait.classList.remove('loading');
+      elPortrait.onerror=()=>elPortrait.classList.remove('loading');
+      elPortrait.src=src;
+    }else elPortrait.classList.remove('loading');
+  }
+  panel.classList.add('show');
+}
 function closePanel(){ panel.classList.remove('show','battle-panel'); mode='world'; elOpts.innerHTML=''; elHint.textContent=''; elNext.classList.remove('show'); flow=null; }
 function showNext(t,fn){ panel.scrollTop=0; elNext.textContent=t; elNext.classList.add('show'); flow={onNext:fn}; }
 elNext.onclick=()=>{ if(flow&&flow.onNext)flow.onNext(); };
@@ -771,7 +784,7 @@ function drawCatch(){ const c=cat; px(0,0,VW,VH,'#2a3550'); for(let i=0;i<VH;i+=
   if(mode==='catchfail'){ px(0,0,VW,VH,'rgba(0,0,0,.55)'); ctx.fillStyle='#e8b9b0'; ctx.font='bold 22px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('枯枝誤接太多，重來……',VW/2,VH/2); }
 }
 function catchSuccess(){ const S=SECTS.plum; sWin(); openPanel('plum'); mode='dialog'; elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'</span>';
-  elSay.textContent='「滿籃疏影暗香，雅人深致也。再考你一問——」'; elOpts.innerHTML=''; const q=S.bonus,shown=shuffleQuestion(q);
+  elSay.textContent='「滿籃疏影暗香，雅人深致也。再考你一問──此句吟詠之物為何？」'; elOpts.innerHTML=''; const q=S.bonus,shown=shuffleQuestion(q);
   elHint.textContent=''; let done=false; shown.options.forEach((option,idx)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=String.fromCharCode(65+idx)+'. '+option.text;
     b.onclick=()=>{ if(done)return; done=true; [...elOpts.children].forEach(c=>c.setAttribute('disabled','')); const ok=idx===shown.answer;
       if(!ok)elOpts.children[shown.answer].classList.add('correct'); b.classList.add(ok?'correct':'wrong'); if(ok){sOk();score+=20;}else{sNo();if(!loseHealth()){elHint.textContent=q.e+'　（體力 -1）';showNext('力竭倒下',showGameOver);return;}}
@@ -876,7 +889,7 @@ function enterAfterIntro(){
   playBgm();
   const a=actx(); if(a&&a.resume)a.resume();
 }
-function startOpeningVideo(){ enterIntro.classList.remove('show'); openingVideo.muted=false; openingVideo.volume=1; const p=openingVideo.play(); if(p&&p.catch)p.catch(()=>showEnterIntro('播放開場影片')); }
+function startOpeningVideo(){ enterIntro.classList.remove('show'); openingVideo.muted=false; openingVideo.volume=1; openingVideo.playbackRate=1.35; const p=openingVideo.play(); if(p&&p.catch)p.catch(()=>showEnterIntro('播放開場影片')); }
 openingVideo.addEventListener('ended',()=>showEnterIntro('進入遊戲解說'));
 openingVideo.addEventListener('error',()=>showEnterIntro('進入遊戲解說'));
 enterIntro.onclick=()=>{
@@ -887,7 +900,7 @@ skipIntro.onclick=enterAfterIntro;
 startOpeningVideo();
 function showOpening(){ mode='card'; card.classList.add('show'); cardInner.innerHTML=
   '<h1>蓮說群芳傳</h1><div class="sub">愛 蓮 說 闖 關</div>'+
-  '<p>晉陶淵明獨愛菊，自李唐來世人盛愛牡丹，<br>而周敦頤獨愛蓮。</p>'+
+  '<p>晉陶淵明獨愛菊，自李唐來，世人盛愛牡丹，<br>而周敦頤獨愛蓮。</p>'+
   '<p>群芳各據一方——有問答、有切磋、有雅趣。<br>你將遊歷諸派、過其考驗，終至湖心蓮花淨臺，<br>參透「花之君子」之德。</p>'+
   '<p style="color:#c9b98f;">手機、平板、電腦皆可遊玩<br>電腦：WASD／方向鍵移動，空白鍵查探<br>手機與平板：左下方向鍵移動，右下「查探」互動</p>'+
   '<button id="startBtn">入　江　湖</button>';
@@ -895,8 +908,8 @@ function showOpening(){ mode='card'; card.classList.add('show'); cardInner.inner
   document.getElementById('startBtn').onclick=()=>{ card.classList.remove('show'); mode='world'; playBgm(); const a=actx(); if(a&&a.resume)a.resume(); }; }
 function endGame(){ closePanel(); mode='card'; card.classList.add('show','celebrate'); pauseBgm(); sWin(); startGrandFireworks(); cardInner.innerHTML=
   '<h1>蓮，花之君子者也</h1><div class="sub">終　局</div>'+
-  '<p class="verse">予獨愛蓮之出淤泥而不染，<br>濯清漣而不妖，中通外直，<br>不蔓不枝，香遠益清，<br>亭亭靜植，可遠觀而不可褻玩焉。</p>'+
-  '<p>「噫！菊之愛，陶後鮮有聞；<br>蓮之愛，同予者何人？」</p>'+
+  '<p class="verse">予獨愛蓮之出淤泥而不染，濯清漣而不妖；<br>中通外直，不蔓不枝；<br>香遠溢清，亭亭淨植，可遠觀而不可褻玩焉。</p>'+
+  '<p>「噫！菊之愛，陶後鮮有聞。<br>蓮之愛，同予者何人？」</p>'+
   '<p style="color:#bfeede;">最終雅興值 '+score+'　·　信物 '+tokens+' 枚</p>'+
   '<div class="seal">品階・'+rankOf()+'</div><button id="againBtn">再遊一回</button>';
   document.getElementById('againBtn').onclick=()=>location.reload(); }
@@ -934,7 +947,8 @@ function render(){
   drawFireworks();
 }
 function drawWorldBackground(){
-  if(!worldBgReady||worldBgFailed)return false;
+  if(!worldBgReady){ px(0,0,VW,VH,'#0c0b09'); return true; }
+  if(worldBgFailed)return false;
   const sx=cam.x/WORLD_W*worldBg.naturalWidth;
   const sy=cam.y/WORLD_H*worldBg.naturalHeight;
   const sw=VW/WORLD_W*worldBg.naturalWidth;
@@ -1031,3 +1045,5 @@ updateHUD(); loop();
 </script>
 </body>
 </html>
+
+
