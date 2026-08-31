@@ -228,7 +228,7 @@ const SECTS={
   // 接花小遊戲
   plum:{name:'梅花塢',plant:'梅花',accent:'#cf6f8f',npc:'和靖先生',token:'梅蕊',kind:'catch',
     intro:'梅花塢中，疏影橫斜，暗香浮動。和靖先生攜鶴而來。\n「踏雪尋梅，貴在用心。且接住飄落的梅花，莫教枯枝混入。」',
-    bonus:{tier:'高階',q:'林逋〈山園小梅〉「疏影橫斜水清淺，暗香浮動月黃昏」描寫的是哪一種花？',o:['桃花','梅花','杏花','牡丹'],a:1,e:'「疏影」、「暗香」是詠梅名句，寫出梅花清幽高潔之姿。'}},
+    bonus:{tier:'高階',q:'「再考你一問——『疏影橫斜水清淺，暗香浮動月黃昏。』此二句吟詠之物為何？」',o:['桃花','梅花','杏花','牡丹'],a:1,e:'典出林逋詩〈山園小梅．其一〉，「疏影」、「暗香」寫出梅花清幽高潔之姿。'}},
   // 終局
   lotus:{name:'蓮花淨臺',plant:'蓮',accent:'#e8d6e8',npc:'濂溪先生',kind:'finale',great:true,
     locked:'淨臺臨水，蓮葉田田。濂溪先生負手而立。\n「君欲識蓮之德，須先遍訪群芳、心有所養。\n（請先完成所有門派、取得 15 枚信物，再回此處。）」',
@@ -784,7 +784,7 @@ function drawCatch(){ const c=cat; px(0,0,VW,VH,'#2a3550'); for(let i=0;i<VH;i+=
   if(mode==='catchfail'){ px(0,0,VW,VH,'rgba(0,0,0,.55)'); ctx.fillStyle='#e8b9b0'; ctx.font='bold 22px "Noto Sans TC",sans-serif'; ctx.textAlign='center'; ctx.fillText('枯枝誤接太多，重來……',VW/2,VH/2); }
 }
 function catchSuccess(){ const S=SECTS.plum; sWin(); openPanel('plum'); mode='dialog'; elSp.innerHTML=S.npc+'　<span class="plant">'+S.plant+'</span>';
-  elSay.textContent='「滿籃疏影暗香，雅人深致也。再考你一問──此句吟詠之物為何？」'; elOpts.innerHTML=''; const q=S.bonus,shown=shuffleQuestion(q);
+  elSay.textContent='「再考你一問——『疏影橫斜水清淺，暗香浮動月黃昏。』此二句吟詠之物為何？」'; elOpts.innerHTML=''; const q=S.bonus,shown=shuffleQuestion(q);
   elHint.textContent=''; let done=false; shown.options.forEach((option,idx)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=String.fromCharCode(65+idx)+'. '+option.text;
     b.onclick=()=>{ if(done)return; done=true; [...elOpts.children].forEach(c=>c.setAttribute('disabled','')); const ok=idx===shown.answer;
       if(!ok)elOpts.children[shown.answer].classList.add('correct'); b.classList.add(ok?'correct':'wrong'); if(ok){sOk();score+=20;}else{sNo();if(!loseHealth()){elHint.textContent=q.e+'　（體力 -1）';showNext('力竭倒下',showGameOver);return;}}
