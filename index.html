@@ -7,6 +7,9 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>蓮說群芳傳・愛蓮說闖關</title>
+<link rel="preload" as="image" href="遊戲精緻背景_v10_縮小場景_高畫質_2x.webp" fetchpriority="high">
+<link rel="preload" as="image" href="assets/sprites/player-map.png">
+<link rel="preload" as="image" href="assets/portraits/academy.webp">
 <style>
   :root{ --ink:#1c1a17; --paper:#efe6d0; --line:#6b5836; --gold:#c79a3a; --jade:#4d8a6a; --crimson:#9a3a2a; --shadow:rgba(0,0,0,.45); }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -172,13 +175,16 @@ function fitCanvasToStage(){
 fitCanvasToStage();
 const TILE=48, MAP_W=64, MAP_H=48, WORLD_W=MAP_W*TILE, WORLD_H=MAP_H*TILE;
 const worldBg=new Image();
+worldBg.decoding='async';
 let worldBgReady=false, worldBgFailed=false;
 worldBg.onload=()=>{ worldBgReady=true; };
 worldBg.onerror=()=>{ worldBgFailed=true; };
-worldBg.src='遊戲精緻背景_v10_縮小場景_高畫質_2x.png';
+worldBg.src='遊戲精緻背景_v10_縮小場景_高畫質_2x.webp';
 const playerBattlePortrait=new Image();
+playerBattlePortrait.decoding='async';
 playerBattlePortrait.src='assets/portraits/player.webp';
 const playerMapSprite=new Image();
+playerMapSprite.decoding='async';
 playerMapSprite.src='assets/sprites/player-map.png';
 
 /* ---------- 音效 ---------- */
@@ -297,6 +303,27 @@ const TOKEN_MARKS=[
   'peony','pine','peach','orchid','maple',
   'osmanthus','reed','paulownia','sunflower','phoenix'
 ];
+const imageCache=new Map();
+function preloadImage(src){
+  if(imageCache.has(src))return imageCache.get(src);
+  const img=new Image();
+  img.decoding='async';
+  const ready=new Promise(resolve=>{
+    img.onload=()=>{ if(img.decode)img.decode().catch(()=>{}).finally(resolve); else resolve(); };
+    img.onerror=resolve;
+  });
+  img.src=src;
+  const entry={img,ready};
+  imageCache.set(src,entry);
+  return entry;
+}
+function warmImages(){
+  ['遊戲精緻背景_v10_縮小場景_高畫質_2x.webp','assets/sprites/player-map.png','assets/portraits/player.webp']
+    .concat(Object.keys(SECTS).map(id=>'assets/portraits/'+id+'.webp'))
+    .concat(TOKEN_MARKS.map(id=>'assets/tokens/'+id+'.png'))
+    .forEach(preloadImage);
+}
+warmImages();
 
 /* ---------- 建築位置 ---------- */
 const BUILDINGS=[
@@ -607,9 +634,11 @@ let flow=null;
 function openPanel(id){
   if(id){
     const src='assets/portraits/'+id+'.webp';
+    const cached=preloadImage(src);
     elPortrait.alt=(id==='academy'?'山長':SECTS[id].npc)+'關主圖片';
     if(elPortrait.getAttribute('src')!==src){
       elPortrait.classList.add('loading');
+      cached.ready.then(()=>{ if(elPortrait.getAttribute('src')===src)elPortrait.classList.remove('loading'); });
       elPortrait.onload=()=>elPortrait.classList.remove('loading');
       elPortrait.onerror=()=>elPortrait.classList.remove('loading');
       elPortrait.src=src;
